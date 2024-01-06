@@ -13,160 +13,227 @@ def get_from_env(key):
 
 
 my_token = get_from_env("TELEGRAM_BOT_TOKEN")
-bot = telebot.TeleBot(my_token)
-answers = ['Я не понял, что ты хочешь сказать.', 'Извини, я тебя не понимаю.', 'Я не знаю такой команды.', 'Мой разработчик не говорил, что отвечать в такой ситуации... >_<']
-
-
 Configuration.account_id = get_from_env("SHOP_ID")
 Configuration.secret_key = get_from_env("PAYMENT_TOKEN")
 
 
-# Словарь с параметрами товаров
+bot = telebot.TeleBot(my_token)
+answers = ['Я не понял, что ты хочешь сказать.', 'Извини, я тебя не понимаю.', 'Я не знаю такой команды.', 'Мой разработчик не говорил, что отвечать в такой ситуации... >_<']
+
+
 def get_item_params_by_id(item_id):
     items_data = {
-        'Диплом': {'amount': 200, 'description': 'Услуга по написанию дипломной работы'},
-        'Лекции': {'amount': 150, 'description': 'Услуга по написанию лекций'},
-        'Курс': {'amount': 100, 'description': 'Услуга по созданию курсовой работы'},
-        'ИТ. Док': {'amount': 120, 'description': 'Услуга по написанию IT-документации'},
-        'ИТ. Проект': {'amount': 180, 'description': 'Услуга по разработке IT-проекта'},
-        'Марат': {'amount': 250, 'description': 'Услуга от Марата'},
-        'Научн. ст.': {'amount': 120, 'description': 'Услуга по написанию научной статьи'},
+        'Дипломная работа': {'amount': 25000, 'description': 'Услуга по написанию дипломной работы', 'custom_description': 'Cрок выполнения 7 дней', 'speed_up_amount': ''},
+        'Курсовая работа': {'amount': 6000, 'description': 'Услуга по написанию курсовой работы', 'custom_description': 'Cрок выполнения 1-3 дней', 'speed_up_amount': 1500},
+        'Итоговая докладная': {'amount': 4000, 'description': 'Услуга по написанию итоговой докладной', 'custom_description': 'Cрок выполнения 1-4 дней', 'speed_up_amount': ''},
+        'Итоговый проект': {'amount': 3000, 'description': 'Услуга по написанию итогового проекта', 'custom_description': 'Cрок выполнения 1-3 дней', 'speed_up_amount': ''},
+        'Научная статья': {'amount': 2000, 'description': 'Услуга по написанию научной статьи', 'custom_description': 'Cрок выполнения 1-3 дней', 'speed_up_amount': 1000},
     }
 
     item_params = items_data.get(item_id)
     return item_params
 
 
-# Обработка кнопки "💳 Купить"
-@bot.message_handler(func=lambda message: message.text.startswith('💳 Купить'))
-def buy_button_handler(message):
-    # Извлекаем идентификатор товара из текста кнопки
-    item_id = message.text.split(':')[1].strip()
-
-    # Получаем параметры товара
-    item_params = get_item_params_by_id(item_id)
-    if item_params:
-        amount, description = item_params['amount'], item_params['description']
-        payment_url = payment_for_item(amount, description, item_id, message.chat.id)
-        bot.send_message(message.chat.id, f"Для оплаты товара '{description}' перейдите по ссылке: {payment_url}")
+@bot.message_handler(func=lambda message: True)
+def handle_messages(message):
+    if message.text == '/start':
+        welcome(message)
+    elif message.text == '📞 Связаться с нами':
+        handle_contact_button(message)
+    elif message.text == '📖 Услуги':
+        goodsChapter(message)
+    elif message.text.startswith('💳 Купить'):
+        handle_buy_button(message)
+    elif message.text == '↩️ Назад':
+        goodsChapter(message)
+    elif message.text == '↩️ Назад в меню':
+        welcome(message)
+    elif message.text == '🆘📚 БПН':
+        bpn(message)
+    elif message.text == '✏️📔 Лекции':
+        show_lectures_info(message)
+    elif message.text in ['КУБГТУ', 'КУБГМУ', 'КУБГУ', 'ККИРУК', 'ИМСИТ']:
+        handle_university_selection(message)
+    elif message.text in ['🎓📚 Дипломная работа', '📘📝 Курсовая работа', '📊📢 Итоговая докладная', '🏆📑 Итоговый проект', '📄🔍 Научная статья']:
+        show_item_info(message)
     else:
-        bot.send_message(message.chat.id, "Товар не найден")
+        bot.send_message(message.chat.id, answers[0])
 
 
-# Обработка команды /start
-@bot.message_handler(commands=['start'])
 def welcome(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    button1 = types.KeyboardButton('🛍 Услуги')
-    button2 = types.KeyboardButton('⚙️ Настройки')
-    button3 = types.KeyboardButton('📄 Справка')
+    button1 = types.KeyboardButton('📖 Услуги')
+    contact_button = types.KeyboardButton('📞 Связаться с нами')
+
     markup.row(button1)
-    markup.row(button2, button3)
+    markup.row(contact_button)
 
     if message.text == '/start':
-        bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name}!\nВас приветствует компания StudyHelp!\nЗдесь ты можешь оформить заказ на наши услуги\nКонтакт ответственного по заказам: https://t.me/aagrinin', reply_markup=markup)
+        # Use the send_message function to send a text message with the keyboard markup
+        bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name}!\n'
+                                          f'Вас приветствует компания StudyHelp!\n'
+                                          f'Здесь ты можешь оформить заказ на наши услуги',
+                         reply_markup=markup)
     else:
         bot.send_message(message.chat.id, 'Перекинул тебя в главном меню! Выбирай!', reply_markup=markup)
 
 
-# Обработка команды "🛍 Услуги"
-@bot.message_handler(func=lambda message: message.text == '🛍 Услуги')
 def goodsChapter(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    button1 = types.KeyboardButton('🔹 Диплом')
-    button2 = types.KeyboardButton('🔹 Лекции')
-    button3 = types.KeyboardButton('🔹 Курс')
-    button4 = types.KeyboardButton('🔹 ИТ. Док')
-    button5 = types.KeyboardButton('🔹 ИТ. Проект')
-    button6 = types.KeyboardButton('🔹 Марат')
-    button7 = types.KeyboardButton('🔹 Научн. ст.')
-    button8 = types.KeyboardButton('↩️ Назад в меню')
-    markup.row(button1, button2)
-    markup.row(button3, button4)
-    markup.row(button5, button6)
-    markup.row(button7, button8)
+    items = ['🎓📚 Дипломная работа', '📘📝 Курсовая работа', '📊📢 Итоговая докладная', '🏆📑 Итоговый проект', '📄🔍 Научная статья', '🆘📚 БПН', '✏️📔 Лекции']
+    buttons = [types.KeyboardButton(item) for item in items]
+    for button in buttons:
+        markup.add(button)
+    markup.add(types.KeyboardButton('↩️ Назад в меню'))
 
     bot.send_message(message.chat.id, 'Вот все товары, которые сейчас находятся в продаже:', reply_markup=markup)
 
 
-# Обработка кнопки "🔹 Диплом"
-@bot.message_handler(func=lambda message: message.text == '🔹 Диплом')
-def diploma_info(message):
+# Функции для связи с ответственным по заказам и с разработчиком бота
+def handle_contact_button(message):
+    contact_message = 'Выберите, каким способом вы хотите связаться:'
+    contact_markup = create_contact_options_markup()
+
+    bot.send_message(message.chat.id, contact_message, reply_markup=contact_markup)
+
+
+def create_contact_options_markup():
+    markup = types.InlineKeyboardMarkup()
+    responsible_button = types.InlineKeyboardButton("Связаться с ответственным по заказам", url="https://t.me/s1erben1")
+    developer_button = types.InlineKeyboardButton("Связаться с разработчиком бота", url="https://t.me/aagrinin")
+    markup.row(developer_button)
+    markup.row(responsible_button)
+
+    return markup
+
+
+# Функция услуги (любые задания, личное обсуждение)
+def bpn(message):
+    bot.send_message(message.chat.id, 'Если вы затянули со сроком выполнения работы, то мы сделаем все за вас в крaтчайшие сроки (цена зависит от срока выполнения работы и ее сложности)')
+    markup = types.InlineKeyboardMarkup()
+    contact_button = types.InlineKeyboardButton("Связаться с нами", url="https://t.me/aagrinin")
+    markup.add(contact_button)
+    bot.send_message(message.chat.id, 'Для уточнения деталей работы и обсуждения цен, нажмите кнопку ниже:', reply_markup=markup)
+
+
+# Функции, связанные с лекциями
+def show_lectures_info(message):
+    service_description = "Информация об услуге лекции"
+    bot.send_message(message.chat.id, service_description)
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    button1 = types.KeyboardButton('💳 Купить: Диплом')
-    button2 = types.KeyboardButton('↩️ Назад')
-    markup.row(button1, button2)
+    universities = ['КУБГТУ', 'КУБГМУ', 'КУБГУ', 'ККИРУК', 'ИМСИТ']
+    university_buttons = [types.KeyboardButton(university) for university in universities]
+    university_buttons.append(types.KeyboardButton('↩️ Назад'))
+    markup.add(*university_buttons)
 
-    bot.send_message(message.chat.id, 'Информация о услуге "Диплом":\nСтоимость: 200 рублей', reply_markup=markup)
+    bot.send_message(message.chat.id, 'Выберите ваш университет:', reply_markup=markup)
 
 
-# Обработка кнопки "🔹 Научн. ст."
-@bot.message_handler(func=lambda message: message.text == '🔹 Лекции')
-def scientific_article_info(message):
+def handle_university_selection(message):
+    selected_university = message.text
+    bot.send_message(message.chat.id, f'Вы выбрали {selected_university} для связи со специалистом.')
+    contact_url = get_contact_url_for_university(selected_university)
+    contact_button = types.InlineKeyboardButton("Связаться с нами", url=contact_url)
+    reply_markup = types.InlineKeyboardMarkup().add(contact_button)
+
+    bot.send_message(message.chat.id, 'Нажмите кнопку ниже, чтобы связаться со специалистом:', reply_markup=reply_markup)
+
+
+def get_contact_url_for_university(university):
+    # Replace with actual usernames or URLs for each university.
+    university_contacts = {
+        'КУБГТУ': 'https://t.me/aagrinin',
+        'КУБГМУ': 'https://t.me/s1erben1',
+        'КУБГУ': 'https://t.me/Vou4ok',
+        'ККИРУК': 'https://t.me/gwcbdur91752p2p',
+        'ИМСИТ': 'https://t.me/aagrinin',
+    }
+    return university_contacts.get(university, '')
+
+
+# Функция информация для оплаты
+def show_item_info(message):
+    item_id = message.text.split(maxsplit=1)[1].strip()
+    item_params = get_item_params_by_id(item_id)
+    if item_params:
+        amount, description, custom_description = item_params['amount'], item_params['description'], item_params.get('custom_description')
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        button1 = types.KeyboardButton(f'💳 Купить: {item_id}')
+        button2 = types.KeyboardButton('↩️ Назад')
+        markup.row(button1, button2)
+
+        item_info = f'Информация о услуге "{item_id}":\nСтоимость: {amount} рублей\nОписание: {custom_description or description}'
+        bot.send_message(message.chat.id, item_info, reply_markup=markup)
+    else:
+        bot.send_message(message.chat.id, "Товар не найден")
+
+
+# Фунуции кнопка оплаты (обычная, ускоренная)
+def handle_buy_button(message):
+    item_id = message.text.split(':')[1].strip()
+    item_params = get_item_params_by_id(item_id)
+
+    if item_params:
+        description = item_params['description']
+        speed_up_amount = item_params['speed_up_amount']
+
+        if item_id in ['Курсовая работа', 'Научная статья']:
+            bot.send_message(message.chat.id,
+                             f"Хотите ускорить выполнение работы до 1 суток для ({description}) за дополнительную плату {speed_up_amount} рублей?",
+                             reply_markup=create_speed_up_markup(item_params, message))
+        else:
+            amount = item_params.get('amount', 0)
+            payment_url = payment_for_item(amount, description, item_id, message.chat.id)
+
+            reply_markup = types.InlineKeyboardMarkup()
+            pay_button = types.InlineKeyboardButton("Оплатить", url=payment_url)
+            reply_markup.add(pay_button)
+
+            bot.send_message(message.chat.id, f"Для оплаты товара ({description}) перейдите по ссылке:",
+                             reply_markup=reply_markup)
+    else:
+        bot.send_message(message.chat.id, "Товар не найден")
+
+
+def create_speed_up_markup(item_params, message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    button1 = types.KeyboardButton('💳 Купить: Лекции')
-    button2 = types.KeyboardButton('↩️ Назад')
-    markup.row(button1, button2)
+    yes_button = types.KeyboardButton('Да')
+    no_button = types.KeyboardButton('Нет')
 
-    bot.send_message(message.chat.id, 'Информация о услуге "Лекции":\nСтоимость: 150 рублей', reply_markup=markup)
+    markup.row(yes_button, no_button)
+    markup.row(types.KeyboardButton('↩️ Назад'))  # Add a back button
 
-
-# Обработка кнопки "🔹 Курс"
-@bot.message_handler(func=lambda message: message.text == '🔹 Курс')
-def course_info(message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    button1 = types.KeyboardButton('💳 Купить: Курс')
-    button2 = types.KeyboardButton('↩️ Назад')
-    markup.row(button1, button2)
-
-    bot.send_message(message.chat.id, 'Информация о услуге "Курс":\nСтоимость: 100 рублей', reply_markup=markup)
+    # Pass item_id as an additional argument
+    item_id = item_params.get('description', '')
+    bot.register_next_step_handler(message, process_speed_up_choice, item_params, item_id)
+    return markup
 
 
-# Обработка кнопки "🔹 ИТ. Док"
-@bot.message_handler(func=lambda message: message.text == '🔹 ИТ. Док')
-def it_document_info(message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    button1 = types.KeyboardButton('💳 Купить: ИТ. Док')
-    button2 = types.KeyboardButton('↩️ Назад')
-    markup.row(button1, button2)
+def process_speed_up_choice(message, item_params, item_id):
+    choice = message.text.lower()
+    description = item_params['description']
+    if choice == 'да':
+        speed_up_amount = item_params.get('speed_up_amount', 0)
+        amount = item_params.get('amount', 0) + speed_up_amount
+        payment_url = payment_for_item(amount, description, item_id, message.chat.id)
+        reply_markup = types.InlineKeyboardMarkup()
+        pay_button = types.InlineKeyboardButton("Оплатить", url=payment_url)
+        reply_markup.add(pay_button)
 
-    bot.send_message(message.chat.id, 'Информация об услуге "ИТ. Документация":\nСтоимость: 120 рублей', reply_markup=markup)
+        bot.send_message(message.chat.id, f"Для оплаты ускоренной работы ({description}) перейдите по ссылке:", reply_markup=reply_markup)
+    elif choice == 'нет':
+        amount = item_params.get('amount', 0)
+        payment_url = payment_for_item(amount, description, item_id, message.chat.id)
+        reply_markup = types.InlineKeyboardMarkup()
+        pay_button = types.InlineKeyboardButton("Оплатить", url=payment_url)
+        reply_markup.add(pay_button)
 
-
-# Обработка кнопки "🔹 ИТ. Проект"
-@bot.message_handler(func=lambda message: message.text == '🔹 ИТ. Проект')
-def it_project_info(message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    button1 = types.KeyboardButton('💳 Купить: ИТ. Проект')
-    button2 = types.KeyboardButton('↩️ Назад')
-    markup.row(button1, button2)
-
-    bot.send_message(message.chat.id, 'Информация об услуге "ИТ. Проект":\nСтоимость: 180 рублей', reply_markup=markup)
-
-
-# Обработка кнопки "🔹 Марат"
-@bot.message_handler(func=lambda message: message.text == '🔹 Марат')
-def marat_info(message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    button1 = types.KeyboardButton('💳 Купить: Марат')
-    button2 = types.KeyboardButton('↩️ Назад')
-    markup.row(button1, button2)
-
-    bot.send_message(message.chat.id, 'Информация об услуге "Услуга от Марата":\nСтоимость: 250 рублей', reply_markup=markup)
+        bot.send_message(message.chat.id, f"Для оплаты обычной работы ({description}) перейдите по ссылке:", reply_markup=reply_markup)
+    else:
+        bot.send_message(message.chat.id, "Некорректный выбор. Пожалуйста, используйте кнопки на клавиатуре.")
 
 
-# Обработка кнопки "🔹 Научн. ст."
-@bot.message_handler(func=lambda message: message.text == '🔹 Научн. ст.')
-def scientific_work_info(message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    button1 = types.KeyboardButton('💳 Купить: Научн. ст.')
-    button2 = types.KeyboardButton('↩️ Назад')
-    markup.row(button1, button2)
-
-    bot.send_message(message.chat.id, 'Информация об услуге "Научная статья":\nСтоимость: 120 рублей', reply_markup=markup)
-
-
-# Функция для обработки платежа для конкретного товара
+# Функция для создания платежа
 def payment_for_item(amount, description, item_id, chat_id):
     payment = Payment.create({
         "amount": {
@@ -184,5 +251,4 @@ def payment_for_item(amount, description, item_id, chat_id):
     return payment_url
 
 
-# Строчка, чтобы программа не останавливалась
 bot.polling(none_stop=True)
