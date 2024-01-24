@@ -4,6 +4,7 @@ from yookassa import Configuration, Payment
 from dotenv import load_dotenv
 import os
 from os.path import join, dirname
+from tinydb import TinyDB, Query
 
 
 def get_from_env(key):
@@ -21,16 +22,20 @@ bot = telebot.TeleBot(my_token)
 answers = ['Я не понял, что ты хочешь сказать.', 'Извини, я тебя не понимаю.', 'Я не знаю такой команды.', 'Мой разработчик не говорил, что отвечать в такой ситуации... >_<']
 
 
+db = TinyDB('orders_db.json')
+
+
 def get_item_params_by_id(item_id):
     items_data = {
-        'Дипломная работа': {'amount': 25000, 'description': 'Дипломная работа', 'custom_description': 'Дипломная работа - это финальная работа студента, которую он выполняет в конце обучения в высшем учебном заведении. Дипломная работа позволяет студенту продемонстрировать полученные знания и умения в выбранной области и провести исследование или практическую работу по конкретной теме\nCрок выполнения: до 7 дней', 'speed_up_amount': '', 'speed_up_time': '3 дней'},
+        'Дипломная работа': {'amount': 25000, 'description': 'Дипломная работа', 'custom_description': 'Дипломная работа - это финальная работа студента, которую он выполняет в конце обучения в высшем учебном заведении. Дипломная работа позволяет студенту продемонстрировать полученные знания и умения в выбранной области и провести исследование или практическую работу по конкретной теме\nCрок выполнения: до 7 дней', 'speed_up_amount': 1, 'speed_up_time': '3 дней'},
         'Курсовая работа': {'amount': 6000, 'description': 'Курсовая работа', 'custom_description': 'Курсовая работа -это научно-исследовательская работа, которую студенты выполняют в рамках учебного курса. Она является одним из основных видов контроля знаний студента в учебном заведении. Курсовая работа предполагает самостоятельное изучение определенной темы, проведение исследований, анализ и обработку полученных данных, а также написание научного текста, содержащего выводы и рекомендации по изучаемой проблематике. Благодаря нашему сервису вы получите первоклассную работу с высокой оригинальностью.\nCрок выполнения: до 3 дней', 'speed_up_amount': 1500, 'speed_up_time': '1 дня'},
-        'Итоговая докладная': {'amount': 4000, 'description': 'Итоговая докладная', 'custom_description': 'Итоговый доклад -это работа в котором подводятся итоги работы или проекта. В нём включаются основные достижения, проблемы, накопленный опыт, рекомендации и планы на будущее. Данная работа создается с целью показать результаты работы или проекта, оценить их эффективность и влияние на достижение поставленных целей.\nCрок выполнения: до 4 дней', 'speed_up_amount': '', 'speed_up_time': '1 дня'},
-        'Итоговый проект': {'amount': 3000, 'description': 'Итоговый проект', 'custom_description': 'Итоговый проект – это работа или задание, выполняемое в конце учебного в целях проверки и оценки знаний, навыков и компетенций, которые ученик или студент приобрел в течение обучения.\nCрок выполнения: до 3 дней', 'speed_up_amount': '', 'speed_up_time': '1 дня'},
+        'Итоговая докладная': {'amount': 4000, 'description': 'Итоговая докладная', 'custom_description': 'Итоговый доклад -это работа в котором подводятся итоги работы или проекта. В нём включаются основные достижения, проблемы, накопленный опыт, рекомендации и планы на будущее. Данная работа создается с целью показать результаты работы или проекта, оценить их эффективность и влияние на достижение поставленных целей.\nCрок выполнения: до 4 дней', 'speed_up_amount': 1, 'speed_up_time': '1 дня'},
+        'Итоговый проект': {'amount': 3000, 'description': 'Итоговый проект', 'custom_description': 'Итоговый проект – это работа или задание, выполняемое в конце учебного в целях проверки и оценки знаний, навыков и компетенций, которые ученик или студент приобрел в течение обучения.\nCрок выполнения: до 3 дней', 'speed_up_amount': 1, 'speed_up_time': '1 дня'},
         'Научная статья': {'amount': 2000, 'description': 'Научная статья', 'custom_description': 'Научная статья - это работа, в которой представлены результаты научного исследования. Она содержит подробное описание проблемы, цели исследования, методологии, полученных данных и анализа. Научная статья также включает обсуждение результатов, их интерпретацию, выводы и рекомендации для дальнейших исследований. Зачастую, такие работы, публикуется в научных журналах и доступна для ознакомления другими учеными и специалистами в той же области знания.\nCрок выполнения: до 3 дней', 'speed_up_amount': 1000, 'speed_up_time': '1 дня'},
     }
 
     item_params = items_data.get(item_id)
+    item_params['additional_delivery_cost'] = 500
     return item_params
 
 
@@ -42,6 +47,8 @@ def handle_messages(message):
         handle_contact_button(message)
     elif message.text == '📖 Услуги':
         goodsChapter(message)
+    elif message.text == '🛒 Корзина':
+        view_cart(message)
     elif message.text.startswith('💳 Купить'):
         handle_buy_button(message)
     elif message.text == '↩️ Назад':
@@ -64,9 +71,11 @@ def welcome(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     button1 = types.KeyboardButton('📖 Услуги')
     contact_button = types.KeyboardButton('📞 Связаться с нами')
+    cart_button = types.KeyboardButton('🛒 Корзина')
 
     markup.row(button1)
     markup.row(contact_button)
+    markup.row(cart_button)
 
     if message.text == '/start':
         # Use the send_message function to send a text message with the keyboard markup
@@ -174,8 +183,6 @@ def handle_buy_button(message):
 
     if item_params:
         description = item_params['description']
-        speed_up_amount = item_params.get('speed_up_amount', 0)
-        speed_up_time = item_params.get('speed_up_time', 0)
 
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         yes_button = types.KeyboardButton('Да')
@@ -185,13 +192,14 @@ def handle_buy_button(message):
         markup.row(back_button)
 
         bot.send_message(message.chat.id,
-                         f'Хотите ускорить выполнение работы до {speed_up_time} для "{description}" за дополнительную плату {speed_up_amount} рублей?',
+                         f'Хотите ускорить выполнение работы для "{description}" за дополнительную плату {item_params["speed_up_amount"]} рублей?',
                          reply_markup=markup)
         bot.register_next_step_handler(message, process_speed_up_choice, item_params, item_id)
     else:
         bot.send_message(message.chat.id, "Товар не найден")
 
 
+# Функция для создания клавиатуры выбора ускоренного выполнения
 def create_speed_up_markup(item_params, message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     yes_button = types.KeyboardButton('Да')
@@ -205,6 +213,7 @@ def create_speed_up_markup(item_params, message):
     return markup
 
 
+# Функция для создания клавиатуры выбора доставки
 def create_delivery_markup(item_params, message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     yes_button = types.KeyboardButton('Да')
@@ -225,19 +234,13 @@ def create_delivery_markup(item_params, message):
     return markup
 
 
+# Функция для обработки выбора пользователя по ускоренному выполнению
 def process_speed_up_choice(message, item_params, item_id):
     choice = message.text.lower()
-    description = item_params['description']
-    additional_delivery_cost = 500
-
-    # Проверяем, является ли speed_up_amount числом
-    try:
-        speed_up_amount = int(item_params.get('speed_up_amount', 0))
-    except (ValueError, TypeError):
-        speed_up_amount = 0
 
     if choice == 'да':
         item_params['speed_up_selected'] = True
+        item_params['amount'] += int(item_params['speed_up_amount'])  # Увеличиваем стоимость
     elif choice == 'нет':
         item_params['speed_up_selected'] = False
     elif choice == 'назад':
@@ -255,59 +258,152 @@ def process_speed_up_choice(message, item_params, item_id):
     markup.row(back_button)
 
     bot.send_message(message.chat.id,
-                     f"За дополнительную плату {additional_delivery_cost} рублей хотите получить распечатанную работу курьером?",
+                     f'Хотите доставку курьером за дополнительную плату 500 рублей?',
                      reply_markup=markup)
     bot.register_next_step_handler(message, process_delivery_choice, item_params, item_id)
 
 
 def process_delivery_choice(message, item_params, item_id):
     choice = message.text.lower()
-    description = item_params['description']
-    additional_delivery_cost = 500
 
-    # Проверяем, является ли speed_up_amount числом
+    if choice == 'да':
+        item_params['delivery_selected'] = True
+        item_params['amount'] += 500  # Увеличиваем стоимость на стоимость доставки
+    elif choice == 'нет':
+        item_params['delivery_selected'] = False
+    elif choice == 'назад':
+        process_speed_up_choice(message, item_params, item_id)
+        return
+    else:
+        goodsChapter(message)
+        return
+
+    handle_cart_options_final(message, item_params, item_id)
+
+
+# Функция для обработки выбора пользователя по курьерской доставке
+def process_courier_choice(message, item_params, item_id):
+    choice = message.text.lower()
+
+    if choice == 'да':
+        item_params['courier_delivery_selected'] = True
+        item_params['amount'] += 500  # Увеличиваем стоимость
+    elif choice == 'нет':
+        item_params['courier_delivery_selected'] = False
+    elif choice == 'назад':
+        process_delivery_choice(message, item_params, item_id)
+        return
+    else:
+        goodsChapter(message)
+        return
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    add_to_cart_button = types.KeyboardButton('Добавить в корзину')
+    back_button = types.KeyboardButton('↩️ Назад')
+    markup.row(add_to_cart_button)
+    markup.row(back_button)
+
+    total_amount = calculate_total_amount(item_params)
+    bot.send_message(message.chat.id,
+                     f'Итоговая цена: {total_amount} рублей\nДобавить в корзину?',
+                     reply_markup=markup)
+    bot.register_next_step_handler(message, handle_cart_options_final, item_params, item_id)
+
+
+def calculate_total_amount(item_params):
+    # Учитываем стоимость ускоренного выполнения только если выбрано "да"
+    speed_up_amount = item_params.get('speed_up_amount', 0)
     try:
-        speed_up_amount = int(item_params.get('speed_up_amount', 0))
-    except (ValueError, TypeError):
+        speed_up_amount = int(speed_up_amount)
+    except ValueError:
         speed_up_amount = 0
 
-    # Проверяем, было ли выбрано ускорение
-    if 'speed_up_selected' in item_params and item_params['speed_up_selected']:
-        # Если ускорение было выбрано, предлагаем доставку курьером
-        if choice == 'да':
-            item_params['delivery_selected'] = True
-            amount = item_params.get('amount', 0) + additional_delivery_cost + speed_up_amount
-        elif choice == 'нет':
-            item_params['delivery_selected'] = False
-            amount = item_params.get('amount', 0) + speed_up_amount
-        elif choice == 'назад':
-            process_speed_up_choice(message, item_params, item_id)
-            return
-        else:
-            goodsChapter(message)
-            return
+    speed_up_selected = item_params.get('speed_up_selected', False)
+    speed_up_cost = speed_up_amount if speed_up_selected else 0
+
+    # Учитываем стоимость курьерской доставки только если выбрано "да"
+    courier_delivery_selected = item_params.get('courier_delivery_selected', False)
+    additional_delivery_cost = 500 if courier_delivery_selected else 0
+
+    # Подсчет общей суммы
+    total_amount = item_params.get('amount', 0) + speed_up_cost + additional_delivery_cost
+    return total_amount
+# Функция для обработки выбора пользователя в корзине
+
+
+def handle_cart_options_final(message, item_params, item_id):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    add_to_cart_button = types.KeyboardButton('Добавить в корзину')
+    back_button = types.KeyboardButton('↩️ Назад')
+    markup.row(add_to_cart_button)
+    markup.row(back_button)
+
+    bot.send_message(message.chat.id,
+                     f'Итоговая цена: {item_params["amount"]} рублей\n'
+                     'Добавить в корзину?',
+                     reply_markup=markup)
+    bot.register_next_step_handler(message, handle_final_cart_decision, item_params, item_id)
+
+
+def handle_final_cart_decision(message, item_params, item_id):
+    choice = message.text.lower()
+
+    if choice == 'добавить в корзину':
+        # Здесь вы можете добавить логику сохранения заказа в базе данных
+        # Пример использования TinyDB: https://tinydb.readthedocs.io/en/latest/usage.html
+        # Пример структуры данных для заказа: {'item_id': item_id, 'item_params': item_params, 'user_id': message.from_user.id}
+        # После сохранения заказа, вы можете предложить оплату или вернуть пользователя в главное меню
+        bot.send_message(message.chat.id, 'Товар успешно добавлен в корзину!')
+        welcome(message)
+    elif choice == 'назад':
+        process_delivery_choice(message, item_params, item_id)
+        return
     else:
-        # Если ускорение не было выбрано, просто переходим к выбору доставки курьером
-        if choice == 'да':
-            item_params['delivery_selected'] = True
-            amount = item_params.get('amount', 0) + additional_delivery_cost
-        elif choice == 'нет':
-            item_params['delivery_selected'] = False
-            amount = item_params.get('amount', 0)
-        elif choice == 'назад':
-            process_speed_up_choice(message, item_params, item_id)
-            return
-        else:
-            goodsChapter(message)
-            return
+        goodsChapter(message)
+        return
 
-    payment_url = payment_for_item(amount, description, item_id, message.chat.id)
-    reply_markup = types.InlineKeyboardMarkup()
-    pay_button = types.InlineKeyboardButton("Оплатить", url=payment_url)
-    reply_markup.add(pay_button)
 
-    bot.send_message(message.chat.id, f"Итоговая сумма с учетом дополнительной платы: {amount} рублей\n"
-                                      f"Для оплаты перейдите по ссылке:", reply_markup=reply_markup)
+def confirm_order(message, amount, description):
+    # Отправляем сообщение с подтверждением заказа и кнопкой "Добавить в корзину"
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    add_to_cart_button = types.KeyboardButton('Добавить в корзину')
+    back_to_menu_button = types.KeyboardButton('↩️ Назад в меню')
+    markup.row(add_to_cart_button)
+    markup.row(back_to_menu_button)
+
+    bot.send_message(message.chat.id, f"Итоговая сумма заказа: {amount} рублей\n"
+                                      f"Опция доставки: {'Да' if message.chat.order_params['delivery_selected'] else 'Нет'}\n"
+                                      f"Хотите добавить этот товар в корзину?", reply_markup=markup)
+
+
+# Добавим обработку кнопки "Добавить в корзину"
+@bot.message_handler(func=lambda message: message.text == 'Добавить в корзину')
+def add_to_cart(message):
+    if hasattr(message.chat, 'order_params') and hasattr(message.chat, 'order_id'):
+        # Здесь вы можете добавить логику для сохранения заказа в базу данных или в файл
+        # В данном примере, мы просто отправим сообщение, что товар добавлен в корзину
+        bot.send_message(message.chat.id, "Товар добавлен в корзину!")
+    else:
+        bot.send_message(message.chat.id, "Ошибка. Не удалось добавить товар в корзину.")
+
+
+# В функции просмотра корзины добавим логику для вывода добавленных товаров
+def view_cart(message):
+    if hasattr(message.chat, 'order_params') and hasattr(message.chat, 'order_id'):
+        # Здесь вы можете добавить логику для отображения корзины
+        # В данном примере, мы просто отправим сообщение с информацией о товаре в корзине
+        item_params = message.chat.order_params
+        item_id = message.chat.order_id
+        amount = item_params.get('amount', 0)
+        description = item_params['description']
+        delivery_selected = item_params.get('delivery_selected', False)
+
+        bot.send_message(message.chat.id, f"Товар в корзине:\n"
+                                          f"Описание: {description}\n"
+                                          f"Итоговая сумма: {amount} рублей\n"
+                                          f"Доставка: {'Да' if delivery_selected else 'Нет'}")
+    else:
+        bot.send_message(message.chat.id, "Ваша корзина пуста.")
 
 
 # Функция для создания платежа
