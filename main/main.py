@@ -4,9 +4,9 @@ from yookassa import Configuration, Payment
 from dotenv import load_dotenv
 import os
 from os.path import join, dirname
-from tinydb import TinyDB, Query
 
 
+#Получаем данные оплаты и токен из файла
 def get_from_env(key):
     dotenv_path = join(dirname(__file__), '.env')
     load_dotenv(dotenv_path)
@@ -22,9 +22,7 @@ bot = telebot.TeleBot(my_token)
 answers = ['Я не понял, что ты хочешь сказать.', 'Извини, я тебя не понимаю.', 'Я не знаю такой команды.', 'Мой разработчик не говорил, что отвечать в такой ситуации... >_<']
 
 
-db = TinyDB('orders_db.json')
-
-
+#Данные об услугах
 def get_item_params_by_id(item_id):
     items_data = {
         'Дипломная работа': {'amount': 25000, 'description': 'Дипломная работа', 'custom_description': 'Дипломная работа - это финальная работа студента, которую он выполняет в конце обучения в высшем учебном заведении. Дипломная работа позволяет студенту продемонстрировать полученные знания и умения в выбранной области и провести исследование или практическую работу по конкретной теме\nCрок выполнения: до 7 дней', 'speed_up_amount': 1, 'speed_up_time': '3 дней'},
@@ -67,6 +65,7 @@ def handle_messages(message):
         bot.send_message(message.chat.id, answers[0])
 
 
+#Приветсвенное сообщение
 def welcome(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     button1 = types.KeyboardButton('📖 Услуги')
@@ -87,6 +86,7 @@ def welcome(message):
         bot.send_message(message.chat.id, 'Перекинул тебя в главном меню! Выбирай!', reply_markup=markup)
 
 
+#Вывод всех услуг
 def goodsChapter(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     items = ['🎓📚 Дипломная работа', '📘📝 Курсовая работа', '📊📢 Итоговая докладная', '🏆📑 Итоговый проект', '📄🔍 Научная статья', '🆘📚 БПН', '✏️📔 Лекции']
@@ -116,7 +116,7 @@ def create_contact_options_markup():
     return markup
 
 
-# Функция услуги (любые задания, личное обсуждение)
+# Функция услуги быстро, правильно, надежно
 def bpn(message):
     bot.send_message(message.chat.id, 'Если вы затянули со сроком выполнения работы, то мы сделаем все за вас в крaтчайшие сроки (цена зависит от срока выполнения работы и ее сложности)')
     markup = types.InlineKeyboardMarkup()
@@ -149,7 +149,6 @@ def handle_university_selection(message):
 
 
 def get_contact_url_for_university(university):
-    # Replace with actual usernames or URLs for each university.
     university_contacts = {
         'КУБГТУ': 'https://t.me/aagrinin',
         'КУБГМУ': 'https://t.me/s1erben1',
@@ -328,7 +327,6 @@ def calculate_total_amount(item_params):
     # Подсчет общей суммы
     total_amount = item_params.get('amount', 0) + speed_up_cost + additional_delivery_cost
     return total_amount
-# Функция для обработки выбора пользователя в корзине
 
 
 def handle_cart_options_final(message, item_params, item_id):
