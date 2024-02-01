@@ -1,9 +1,11 @@
+import uuid
 import telebot
 from telebot import types
 from yookassa import Configuration, Payment
 from dotenv import load_dotenv
 import os
 from os.path import join, dirname
+import psycopg2
 
 
 #Получаем данные оплаты и токен из файла
@@ -16,6 +18,7 @@ def get_from_env(key):
 my_token = get_from_env("TELEGRAM_BOT_TOKEN")
 Configuration.account_id = get_from_env("SHOP_ID")
 Configuration.secret_key = get_from_env("PAYMENT_TOKEN")
+DATABASE_URL = get_from_env("DATABASE_URL")
 
 
 bot = telebot.TeleBot(my_token)
@@ -46,7 +49,7 @@ def handle_messages(message):
     elif message.text == '📖 Услуги':
         goodsChapter(message)
     elif message.text == '🛒 Корзина':
-        view_cart(message)
+        handle_view_cart(message)
     elif message.text.startswith('💳 Купить'):
         handle_buy_button(message)
     elif message.text == '↩️ Назад':
@@ -347,19 +350,22 @@ def handle_final_cart_decision(message, item_params, item_id):
     choice = message.text.lower()
 
     if choice == 'добавить в корзину':
-        # Здесь вы можете добавить логику сохранения заказа в базе данных
-        # Пример использования TinyDB: https://tinydb.readthedocs.io/en/latest/usage.html
-        # Пример структуры данных для заказа: {'item_id': item_id, 'item_params': item_params, 'user_id': message.from_user.id}
-        # После сохранения заказа, вы можете предложить оплату или вернуть пользователя в главное меню
-        bot.send_message(message.chat.id, 'Товар успешно добавлен в корзину!')
+        user_id = message.from_user.id
+        if item_params:
+            # Отправка сообщения о заказе
+            order_message = bot.send_message(message.chat.id, 'Заказ оформлен. Ожидайте подтверждения.')
+            # Получение ID отправленного сообщения
+            message_id = order_message.message_id
+            # Добавление заказа в БД
+            add_order(user_id, item_id, item_params['amount'], item_params['description'], item_params.get('delivery_selected', False), message_id)
+            bot.send_message(message.chat.id, 'Товар успешно добавлен в корзину!')
+        else:
+            bot.send_message(message.chat.id, 'Произошла ошибка при добавлении товара в корзину.')
         welcome(message)
     elif choice == 'назад':
         process_delivery_choice(message, item_params, item_id)
-        return
     else:
         goodsChapter(message)
-        return
-
 
 def confirm_order(message, amount, description):
     # Отправляем сообщение с подтверждением заказа и кнопкой "Добавить в корзину"
@@ -374,38 +380,96 @@ def confirm_order(message, amount, description):
                                       f"Хотите добавить этот товар в корзину?", reply_markup=markup)
 
 
-# Добавим обработку кнопки "Добавить в корзину"
-@bot.message_handler(func=lambda message: message.text == 'Добавить в корзину')
-def add_to_cart(message):
-    if hasattr(message.chat, 'order_params') and hasattr(message.chat, 'order_id'):
-        # Здесь вы можете добавить логику для сохранения заказа в базу данных или в файл
-        # В данном примере, мы просто отправим сообщение, что товар добавлен в корзину
-        bot.send_message(message.chat.id, "Товар добавлен в корзину!")
-    else:
-        bot.send_message(message.chat.id, "Ошибка. Не удалось добавить товар в корзину.")
+def get_db_connection():
+    conn = psycopg2.connect(DATABASE_URL)
+    return conn
 
 
-# В функции просмотра корзины добавим логику для вывода добавленных товаров
-def view_cart(message):
-    if hasattr(message.chat, 'order_params') and hasattr(message.chat, 'order_id'):
-        # Здесь вы можете добавить логику для отображения корзины
-        # В данном примере, мы просто отправим сообщение с информацией о товаре в корзине
-        item_params = message.chat.order_params
-        item_id = message.chat.order_id
-        amount = item_params.get('amount', 0)
-        description = item_params['description']
-        delivery_selected = item_params.get('delivery_selected', False)
+# Добавление заказа в базу данных с message_id
+def add_order(user_id, item_id, amount, description, delivery_selected, message_id):
+    conn = get_db_connection()
+    with conn.cursor() as cursor:
+        cursor.execute("""
+            INSERT INTO orders (user_id, item_id, amount, description, delivery_selected, message_id)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (user_id, item_id, amount, description, delivery_selected, message_id))
+        conn.commit()
+    conn.close()
 
-        bot.send_message(message.chat.id, f"Товар в корзине:\n"
-                                          f"Описание: {description}\n"
-                                          f"Итоговая сумма: {amount} рублей\n"
-                                          f"Доставка: {'Да' if delivery_selected else 'Нет'}")
+
+# Получение message_id по order_id
+def get_message_id_by_order_id(order_id):
+    conn = get_db_connection()
+    message_id = None
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT message_id FROM orders WHERE order_id = %s", (order_id,))
+        result = cursor.fetchone()
+        if result:
+            message_id = result[0]
+    conn.close()
+    return message_id
+
+
+# Удаление заказа из базы данных
+def delete_order(order_id):
+    conn = get_db_connection()
+    with conn.cursor() as cursor:
+        cursor.execute("DELETE FROM orders WHERE order_id = %s", (order_id,))
+        conn.commit()
+    conn.close()
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('delete_'))
+def handle_delete_order(call):
+    order_id = call.data.split('_')[1]
+    delete_order(order_id)
+
+    # Обновляем текст сообщения, убирая информацию о заказе и ссылку на оплату
+    bot.edit_message_text(chat_id=call.message.chat.id,
+                          message_id=call.message.message_id,
+                          text=f"Заказ {order_id} удален из корзины.")
+    bot.answer_callback_query(call.id, f"Заказ {order_id} удален из корзины.")
+
+
+def get_user_orders(user_id):
+    conn = get_db_connection()
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT * FROM orders WHERE user_id = %s", (user_id,))
+        orders = cursor.fetchall()
+    conn.close()
+    return orders
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('delete_order_'))
+def callback_query(call):
+    order_id = call.data.split('_')[2]
+    delete_order(order_id)  # Удаление заказа из базы данных
+
+    # Обновление сообщения, чтобы убрать информацию о заказе
+    bot.edit_message_text(chat_id=call.message.chat.id,
+                          message_id=call.message.message_id,
+                          text="Заказ удалён.")
+
+
+@bot.message_handler(func=lambda message: message.text == '🛒 Корзина')
+def handle_view_cart(message):
+    user_id = message.from_user.id
+    orders = get_user_orders(user_id)
+    if orders:
+        for order in orders:
+            payment_link = create_payment(order[3], order[4], order[0])  # amount, description, order_id
+            markup = types.InlineKeyboardMarkup()
+            pay_button = types.InlineKeyboardButton(text="Оплатить", url=payment_link)
+            delete_button = types.InlineKeyboardButton(text="Удалить", callback_data=f"delete_{order[0]}")
+            markup.add(pay_button, delete_button)
+            bot.send_message(message.chat.id, f'Заказ {order[0]}: {order[4]} за {order[3]} рублей', reply_markup=markup)
     else:
         bot.send_message(message.chat.id, "Ваша корзина пуста.")
 
 
 # Функция для создания платежа
-def payment_for_item(amount, description, item_id, chat_id):
+def create_payment(amount, description, order_id):
+    return_url = 'https://your-website.com/success-page'  # URL, на который пользователь будет перенаправлен после оплаты
     payment = Payment.create({
         "amount": {
             "value": str(amount),
@@ -413,13 +477,11 @@ def payment_for_item(amount, description, item_id, chat_id):
         },
         "confirmation": {
             "type": "redirect",
-            "return_url": f"https://your-website.com/success-page?chat_id={chat_id}&item_id={item_id}"
+            "return_url": f"{return_url}?order_id={order_id}"
         },
         "description": description
-    })
-
-    payment_url = payment.confirmation.confirmation_url
-    return payment_url
+    }, uuid.uuid4())
+    return payment.confirmation.confirmation_url
 
 
 bot.polling(none_stop=True)
