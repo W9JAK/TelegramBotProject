@@ -46,7 +46,9 @@ def get_item_params_by_id(item_id):
 @bot.message_handler(func=lambda message: True)
 def handle_messages(message):
     if message.text == '/start':
-        welcome(message)
+        start(message)
+    elif message.text in ['🏛️ Университет/Колледж', '🏫 Школа']:
+        choose_education_institution(message)
     elif message.text == '📞 Связаться с нами':
         handle_contact_button(message)
     elif message.text == '📖 Услуги':
@@ -71,24 +73,36 @@ def handle_messages(message):
         bot.send_message(message.chat.id, answers[0])
 
 
-# Приветсвенное сообщение
+def start(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    university_button = types.KeyboardButton('🏛️ Университет/Колледж')
+    school_button = types.KeyboardButton('🏫 Школа')
+    markup.add(university_button, school_button)
+    bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name}!\n'
+                                      f'Вас приветствует компания StudyHelp!\n'
+                                      f'Здесь ты можешь оформить заказ на наши услуги.',
+                     reply_markup=markup)
+    bot.send_message(message.chat.id, "Выберите ваше образовательное учреждение:", reply_markup=markup)
+
+
+# Обработчик выбора образовательного учреждения
+@bot.message_handler(func=lambda message: message.text in ['Университет/Колледж', 'Школа'])
+def choose_education_institution(message):
+    if message.text == '🏛️ Университет/Колледж':
+        welcome(message)  # Переходим к приветственному сообщению и меню услуг
+    elif message.text == '🏫 Школа':
+        bot.send_message(message.chat.id, "К сожалению, мы пока не предоставляем услуги для школ.", reply_markup=types.ReplyKeyboardRemove())
+
+
 def welcome(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     button1 = types.KeyboardButton('📖 Услуги')
     contact_button = types.KeyboardButton('📞 Связаться с нами')
     cart_button = types.KeyboardButton('🛒 Корзина')
-
     markup.row(button1)
     markup.row(contact_button)
     markup.row(cart_button)
-
-    if message.text == '/start':
-        bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name}!\n'
-                                          f'Вас приветствует компания StudyHelp!\n'
-                                          f'Здесь ты можешь оформить заказ на наши услуги.',
-                         reply_markup=markup)
-    else:
-        bot.send_message(message.chat.id, 'Перекинул тебя в главное меню!', reply_markup=markup)
+    bot.send_message(message.chat.id, 'Перекинул тебя в главное меню!', reply_markup=markup)
 
 
 def goodsChapter(message):
@@ -255,10 +269,11 @@ def process_delivery_choice(message, item_params, item_id):
         item_params['courier_delivery'] = choice == 'да'
         if item_params['courier_delivery']:
             item_params['amount'] += 500
-        msg = bot.send_message(message.chat.id, "Напишите тему работы:", reply_markup=types.ReplyKeyboardRemove())
-        bot.register_next_step_handler(msg, process_project_title, item_params, item_id)
+        msg = bot.send_message(message.chat.id, "Напишите название вашего учебного заведения:", reply_markup=types.ReplyKeyboardRemove())
+        bot.register_next_step_handler(msg, process_education_institution_name, item_params, item_id)
     else:
         bot.send_message(message.chat.id, "Выберите, пожалуйста, 'Да' или 'Нет'.")
+
 
 
 def calculate_total_amount(item_params):
@@ -322,20 +337,24 @@ def get_db_connection():
     return conn
 
 
+def process_education_institution_name(message, item_params, item_id):
+    item_params['education_institution_name'] = message.text
+    msg = bot.send_message(message.chat.id, "Напишите тему работы:", reply_markup=types.ReplyKeyboardRemove())
+    bot.register_next_step_handler(msg, process_project_title, item_params, item_id)
+
 def process_project_title(message, item_params, item_id):
     item_params['project_title'] = message.text
     msg = bot.send_message(message.chat.id, "Пришлите методические указания или опишите их:", reply_markup=types.ReplyKeyboardRemove())
     bot.register_next_step_handler(msg, process_project_description, item_params, item_id)
-
 
 def process_project_description(message, item_params, item_id):
     item_params['project_description'] = message.text
     msg = bot.send_message(message.chat.id, "Есть ли какие-то пожелания к работе?", reply_markup=types.ReplyKeyboardRemove())
     bot.register_next_step_handler(msg, process_project_requirements, item_params, item_id)
 
-
 def process_project_requirements(message, item_params, item_id):
     item_params['project_requirements'] = message.text
+    # Теперь мы передаем все данные, включая название учебного заведения, для подтверждения заказа
     confirm_order_or_proceed(message, item_params, item_id)
 
 
@@ -361,9 +380,10 @@ def final_confirmation(message, item_params, item_id):
         project_requirements = item_params.get('project_requirements', '')
         speed_up = item_params.get('speed_up', False)
         courier_delivery = item_params.get('courier_delivery', False)
+        education_institution_name = item_params.get('education_institution_name', '')
 
         # Передаем все данные в функцию add_order
-        add_order(user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery)
+        add_order(user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name)
 
         bot.send_message(message.chat.id, "Ваш заказ подтвержден и добавлен в корзину!", reply_markup=types.ReplyKeyboardRemove())
         welcome(message)
@@ -421,22 +441,19 @@ def update_order_details(order_id, project_title, project_description, project_r
 
 
 # Добавление заказа в базу данных с message_id
-def add_order(user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery):
+def add_order(user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name):
     conn = psycopg2.connect(DATABASE_URL)
     try:
         with conn.cursor() as cursor:
-            # Обновленный SQL запрос для вставки новых полей speed_up и courier_delivery
             cursor.execute("""
-                INSERT INTO orders (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery))
+                INSERT INTO orders (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name))
             conn.commit()
     except Exception as e:
         print("Ошибка при добавлении заказа:", e)
     finally:
         conn.close()
-
-
 
 
 # Получение message_id по order_id
@@ -479,7 +496,7 @@ def get_user_orders(user_id):
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT order_id, user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery
+                SELECT order_id, user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name 
                 FROM orders
                 WHERE user_id = %s
             """, (user_id,))
@@ -494,14 +511,14 @@ def get_user_orders(user_id):
                 'project_description': row[7],
                 'project_requirements': row[8],
                 'speed_up': row[9],
-                'courier_delivery': row[10]
+                'courier_delivery': row[10],
+                'education_institution_name': row[11]
             } for row in cursor.fetchall()]
     except Exception as e:
         print("Ошибка при получении заказов пользователя:", e)
     finally:
         conn.close()
     return orders
-
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('delete_order_'))
@@ -525,6 +542,7 @@ def handle_view_cart(message):
             speed_up_text = "Да" if order['speed_up'] else "Нет"
             courier_delivery_text = "Да" if order['courier_delivery'] else "Нет"
             order_details = f'{order["description"]} за {order["amount"]} рублей\n' \
+                            f'Название учебного заведения: {order["education_institution_name"]}\n' \
                             f'Тема работы: {order["project_title"]}\n' \
                             f'Описание: {order["project_description"]}\n' \
                             f'Требования: {order["project_requirements"]}\n' \
