@@ -349,8 +349,35 @@ def process_project_title(message, item_params, item_id):
 
 def process_project_description(message, item_params, item_id):
     item_params['project_description'] = message.text
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    yes_button = types.KeyboardButton('Да')
+    no_button = types.KeyboardButton('Нет')
+    markup.add(yes_button, no_button)
+    msg = bot.send_message(message.chat.id, "Есть ли у вас содержание работы? В случае его отсутвия мы составим содержание сами за дополнительную плату 300 рублей", reply_markup=markup)
+    bot.register_next_step_handler(msg, process_has_contents, item_params, item_id)
+
+
+def process_has_contents(message, item_params, item_id):
+    choice = message.text.lower()
+    if choice == 'да':
+        msg = bot.send_message(message.chat.id, "Пожалуйста, введите содержание работы:", reply_markup=types.ReplyKeyboardRemove())
+        bot.register_next_step_handler(msg, process_contents_input, item_params, item_id)
+    elif choice == 'нет':
+        item_params['amount'] += 300  # Увеличиваем цену на 300 рублей
+        item_params['has_contents'] = False
+        msg = bot.send_message(message.chat.id, "Есть ли какие-то пожелания к работе?", reply_markup=types.ReplyKeyboardRemove())
+        bot.register_next_step_handler(msg, process_project_requirements, item_params, item_id)
+    else:
+        bot.send_message(message.chat.id, "Пожалуйста, выберите 'Да' или 'Нет'.")
+        return
+
+
+def process_contents_input(message, item_params, item_id):
+    item_params['contents'] = message.text
+    item_params['has_contents'] = True
     msg = bot.send_message(message.chat.id, "Есть ли какие-то пожелания к работе?", reply_markup=types.ReplyKeyboardRemove())
     bot.register_next_step_handler(msg, process_project_requirements, item_params, item_id)
+
 
 def process_project_requirements(message, item_params, item_id):
     item_params['project_requirements'] = message.text
@@ -382,8 +409,9 @@ def final_confirmation(message, item_params, item_id):
         courier_delivery = item_params.get('courier_delivery', False)
         education_institution_name = item_params.get('education_institution_name', '')
 
-        # Передаем все данные в функцию add_order
-        add_order(user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name)
+        add_order(user_id, item_id, amount, description, delivery_selected, project_title, project_description,
+                  project_requirements, speed_up, courier_delivery, education_institution_name,
+                  item_params.get('has_contents', False), item_params.get('contents', ''))
 
         bot.send_message(message.chat.id, "Ваш заказ подтвержден и добавлен в корзину!", reply_markup=types.ReplyKeyboardRemove())
         welcome(message)
@@ -441,19 +469,20 @@ def update_order_details(order_id, project_title, project_description, project_r
 
 
 # Добавление заказа в базу данных с message_id
-def add_order(user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name):
+def add_order(user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents):
     conn = psycopg2.connect(DATABASE_URL)
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                INSERT INTO orders (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name))
+                INSERT INTO orders (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents))
             conn.commit()
     except Exception as e:
         print("Ошибка при добавлении заказа:", e)
     finally:
         conn.close()
+
 
 
 # Получение message_id по order_id
@@ -496,7 +525,7 @@ def get_user_orders(user_id):
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT order_id, user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name 
+                SELECT order_id, user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents
                 FROM orders
                 WHERE user_id = %s
             """, (user_id,))
@@ -512,7 +541,9 @@ def get_user_orders(user_id):
                 'project_requirements': row[8],
                 'speed_up': row[9],
                 'courier_delivery': row[10],
-                'education_institution_name': row[11]
+                'education_institution_name': row[11],
+                'has_contents': row[12],
+                'contents': row[13]
             } for row in cursor.fetchall()]
     except Exception as e:
         print("Ошибка при получении заказов пользователя:", e)
@@ -541,11 +572,13 @@ def handle_view_cart(message):
             # Подготовка текста сообщения с дополнительной информацией
             speed_up_text = "Да" if order['speed_up'] else "Нет"
             courier_delivery_text = "Да" if order['courier_delivery'] else "Нет"
+            contents_text = order['contents'] if order['has_contents'] else "Содержание: Нет"
             order_details = f'{order["description"]} за {order["amount"]} рублей\n' \
                             f'Название учебного заведения: {order["education_institution_name"]}\n' \
                             f'Тема работы: {order["project_title"]}\n' \
-                            f'Описание: {order["project_description"]}\n' \
-                            f'Требования: {order["project_requirements"]}\n' \
+                            f'Методические указания: {order["project_description"]}\n' \
+                            f'Содержание: {contents_text}\n' \
+                            f'Пожелания к работе: {order["project_requirements"]}\n' \
                             f'Ускоренное выполнение: {speed_up_text}\n' \
                             f'Курьерская доставка: {courier_delivery_text}'
             payment_link = create_payment(order["amount"], order["description"], order["order_id"])
