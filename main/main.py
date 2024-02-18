@@ -1,27 +1,14 @@
 import uuid
-import telebot
 from telebot import types
-from yookassa import Configuration, Payment
-from dotenv import load_dotenv
-import os
-from os.path import join, dirname
+from yookassa import Payment
 import psycopg2
+from config import DATABASE_URL
+from telebot import TeleBot
+from config import my_token
+
+bot = TeleBot(my_token)
 
 
-# Получаем данные оплаты и токен из файла
-def get_from_env(key):
-    dotenv_path = join(dirname(__file__), '.env')
-    load_dotenv(dotenv_path)
-    return os.environ.get(key)
-
-
-my_token = get_from_env("TELEGRAM_BOT_TOKEN")
-Configuration.account_id = get_from_env("SHOP_ID")
-Configuration.secret_key = get_from_env("PAYMENT_TOKEN")
-DATABASE_URL = get_from_env("DATABASE_URL")
-
-
-bot = telebot.TeleBot(my_token)
 answers = ['Я не понял, что ты хочешь сказать.', 'Извини, я тебя не понимаю.', 'Я не знаю такой команды.', 'Мой разработчик не говорил, что отвечать в такой ситуации... >_<']
 
 
@@ -609,4 +596,9 @@ def create_payment(amount, description, order_id):
     return payment.confirmation.confirmation_url
 
 
-bot.polling(none_stop=True)
+def start_bot():
+    bot.polling(none_stop=True)
+
+
+if __name__ == '__main__':
+    start_bot()
