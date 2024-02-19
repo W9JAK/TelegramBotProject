@@ -65,6 +65,9 @@ def start(message):
     university_button = types.KeyboardButton('🏛️ Университет/Колледж')
     school_button = types.KeyboardButton('🏫 Школа')
     markup.add(university_button, school_button)
+    user_id = message.from_user.id
+    username = message.from_user.username
+    update_user_info(user_id, username)
     bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name}!\n'
                                       f'Вас приветствует компания StudyHelp!\n'
                                       f'Здесь ты можешь оформить заказ на наши услуги.',
@@ -262,7 +265,6 @@ def process_delivery_choice(message, item_params, item_id):
         bot.send_message(message.chat.id, "Выберите, пожалуйста, 'Да' или 'Нет'.")
 
 
-
 def calculate_total_amount(item_params):
     # Учитываем стоимость ускоренного выполнения только если выбрано "да"
     speed_up_amount = item_params.get('speed_up_amount', 0)
@@ -322,6 +324,39 @@ def handle_final_cart_decision(message, item_params, item_id):
 def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)
     return conn
+
+
+def update_user_info(user_id, username):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO users (user_id, username)
+                VALUES (%s, %s)
+                ON CONFLICT (user_id) DO UPDATE
+                SET username = EXCLUDED.username;
+            """, (user_id, username))
+        conn.commit()
+    except Exception as e:
+        print(f"Ошибка при обновлении информации пользователя {user_id}: {e}")
+    finally:
+        conn.close()
+
+
+def get_user_username(user_id):
+    conn = get_db_connection()
+    username = None
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT username FROM users WHERE user_id = %s", (user_id,))
+            result = cursor.fetchone()
+            if result:
+                username = result[0]
+    except Exception as e:
+        print(f"Ошибка при получении username пользователя {user_id}: {e}")
+    finally:
+        conn.close()
+    return username
 
 
 def process_education_institution_name(message, item_params, item_id):
@@ -589,10 +624,13 @@ def create_payment(amount, description, order_id):
         },
         "confirmation": {
             "type": "redirect",
-            "return_url": f"{return_url}?order_id={order_id}"
+            "return_url": return_url  # Удалено добавление order_id в URL
+        },
+        "metadata": {
+            "order_id": str(order_id)  # Явное добавление order_id в метаданные платежа
         },
         "description": description
-    }, uuid.uuid4())
+    }, uuid.uuid4())  # Использование uuid.uuid4() для генерации уникального идентификатора платежа
     return payment.confirmation.confirmation_url
 
 

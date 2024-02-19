@@ -21,7 +21,3 @@ if __name__ == '__main__':
 
     flask_process.join()
     bot_process.join()
-
-
-
-
