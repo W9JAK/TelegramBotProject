@@ -1,7 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template_string
 from datetime import datetime
 from main import bot, get_db_connection, get_user_username
 from config import GROUP_CHAT_ID
+
 
 app = Flask(__name__)
 
@@ -77,9 +78,35 @@ def yookassa_webhook():
         else:
             message += 'Информация о заказчике недоступна.\n'
 
+        with open("orders_log.txt", "a") as file:
+            file.write(f"{message}\r\n")
+
         bot.send_message(GROUP_CHAT_ID, message)
 
     return jsonify({'status': 'success'})
+
+
+@app.route('/orders')
+def show_orders():
+    try:
+        with open("orders_log.txt", "r", encoding="windows-1251") as file:
+            orders_data = file.read()
+    except FileNotFoundError:
+        orders_data = "Файл с данными о заказах не найден."
+
+    html_template = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Заказы</title>
+    </head>
+    <body>
+        <h1>Заказы</h1>
+        <pre>{{ orders_data }}</pre>
+    </body>
+    </html>
+    """
+    return render_template_string(html_template, orders_data=orders_data)
 
 
 if __name__ == '__main__':

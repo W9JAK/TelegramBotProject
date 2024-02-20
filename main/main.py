@@ -1,5 +1,4 @@
 import uuid
-from telebot import types
 from yookassa import Payment
 import psycopg2
 from config import DATABASE_URL
@@ -9,24 +8,42 @@ from config import my_token
 bot = TeleBot(my_token)
 
 
+def get_db_connection():
+    conn = psycopg2.connect(DATABASE_URL)
+    return conn
+
+
 answers = ['Я не понял, что ты хочешь сказать.', 'Извини, я тебя не понимаю.', 'Я не знаю такой команды.', 'Мой разработчик не говорил, что отвечать в такой ситуации... >_<']
 
 
 temp_storage = {}
 
 
-# Данные об услугах
-def get_item_params_by_id(item_id):
-    items_data = {
-        'Дипломная работа': {'amount': 25000, 'description': 'Дипломная работа', 'custom_description': 'Дипломная работа - это финальная работа студента, которую он выполняет в конце обучения в высшем учебном заведении. Дипломная работа позволяет студенту продемонстрировать полученные знания и умения в выбранной области и провести исследование или практическую работу по конкретной теме\nCрок выполнения: до 7 дней', 'speed_up_amount': 6250, 'speed_up_time': '3 дней'},
-        'Курсовая работа': {'amount': 6500, 'description': 'Курсовая работа', 'custom_description': 'Курсовая работа -это научно-исследовательская работа, которую студенты выполняют в рамках учебного курса. Она является одним из основных видов контроля знаний студента в учебном заведении. Курсовая работа предполагает самостоятельное изучение определенной темы, проведение исследований, анализ и обработку полученных данных, а также написание научного текста, содержащего выводы и рекомендации по изучаемой проблематике. Благодаря нашему сервису вы получите первоклассную работу с высокой оригинальностью.\nCрок выполнения: до 3 дней', 'speed_up_amount': 1625, 'speed_up_time': '1 дня'},
-        'Итоговый доклад': {'amount': 1500, 'description': 'Итоговый доклад', 'custom_description': 'Итоговый доклад -это работа в котором подводятся итоги работы или проекта. В нём включаются основные достижения, проблемы, накопленный опыт, рекомендации и планы на будущее. Данная работа создается с целью показать результаты работы или проекта, оценить их эффективность и влияние на достижение поставленных целей.\nCрок выполнения: до 4 дней', 'speed_up_amount': 375, 'speed_up_time': '1 дня'},
-        'Итоговый проект': {'amount': 3000, 'description': 'Итоговый проект', 'custom_description': 'Итоговый проект – это работа или задание, выполняемое в конце учебного в целях проверки и оценки знаний, навыков и компетенций, которые ученик или студент приобрел в течение обучения.\nCрок выполнения: до 3 дней', 'speed_up_amount': 750, 'speed_up_time': '1 дня'},
-        'Научная статья': {'amount': 2500, 'description': 'Научная статья', 'custom_description': 'Научная статья - это работа, в которой представлены результаты научного исследования. Она содержит подробное описание проблемы, цели исследования, методологии, полученных данных и анализа. Научная статья также включает обсуждение результатов, их интерпретацию, выводы и рекомендации для дальнейших исследований. Зачастую, такие работы, публикуется в научных журналах и доступна для ознакомления другими учеными и специалистами в той же области знания.\nCрок выполнения: до 3 дней', 'speed_up_amount': 625, 'speed_up_time': '1 дня'},
-    }
-
-    item_params = items_data.get(item_id)
-    item_params['additional_delivery_cost'] = 500
+def get_item_params_by_name(name):
+    conn = get_db_connection()
+    item_params = {}
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT name, amount, description, custom_description, speed_up_amount, speed_up_time, additional_delivery_cost
+                FROM items
+                WHERE name = %s
+            """, (name,))
+            row = cursor.fetchone()
+            if row:
+                item_params = {
+                    'name': row[0],
+                    'amount': row[1],
+                    'description': row[2],
+                    'custom_description': row[3],
+                    'speed_up_amount': row[4],
+                    'speed_up_time': row[5],
+                    'additional_delivery_cost': row[6]
+                }
+    except Exception as e:
+        print(f"Ошибка при получении данных об услуге {name}: {e}")
+    finally:
+        conn.close()
     return item_params
 
 
@@ -52,8 +69,6 @@ def handle_messages(message):
         bpn(message)
     elif message.text == '✏️📔 Лекции':
         show_lectures_info(message)
-    elif message.text in ['КУБГТУ', 'КУБГМУ', 'КУБГУ', 'ККИРУК', 'ИМСИТ']:
-        handle_university_selection(message)
     elif message.text in ['🎓📚 Дипломная работа', '📘📝 Курсовая работа', '📊📢 Итоговый доклад', '🏆📑 Итоговый проект', '📄🔍 Научная статья']:
         show_item_info(message)
     else:
@@ -116,7 +131,7 @@ def handle_contact_button(message):
 
 def create_contact_options_markup():
     markup = types.InlineKeyboardMarkup()
-    responsible_button = types.InlineKeyboardButton("Связаться с ответственным по заказам", url="https://t.me/s1erben1")
+    responsible_button = types.InlineKeyboardButton("Связаться с ответственным по заказам", url="https://t.me/gelya200309")
     developer_button = types.InlineKeyboardButton("Связаться с разработчиком бота", url="https://t.me/aagrinin")
     markup.row(developer_button)
     markup.row(responsible_button)
@@ -128,64 +143,43 @@ def create_contact_options_markup():
 def bpn(message):
     bot.send_message(message.chat.id, 'Если вы затянули со сроком выполнения работы, то мы сделаем все за вас в крaтчайшие сроки (цена зависит от срока выполнения работы и ее сложности)')
     markup = types.InlineKeyboardMarkup()
-    contact_button = types.InlineKeyboardButton("Связаться с нами", url="https://t.me/aagrinin")
+    contact_button = types.InlineKeyboardButton("Связаться с нами", url="https://t.me/gelya200309")
     markup.add(contact_button)
     bot.send_message(message.chat.id, 'Для уточнения деталей работы и обсуждения цен, нажмите кнопку ниже:', reply_markup=markup)
 
 
-# Функции, связанные с лекциями
 def show_lectures_info(message):
-    service_description = "Пропустили учебный день? Нужно написать много лекций? Не беда, наша команда профессионалов специализируется на написании лекций. Не теряйте времени и доверьтесь нам. Свяжитесь с нами уже сегодня, чтобы получить свою лекцию завтра"
-    bot.send_message(message.chat.id, service_description)
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    universities = ['КУБГТУ', 'КУБГМУ', 'КУБГУ', 'ККИРУК', 'ИМСИТ']
-    university_buttons = [types.KeyboardButton(university) for university in universities]
-    university_buttons.append(types.KeyboardButton('↩️ Назад'))
-    markup.add(*university_buttons)
-
-    bot.send_message(message.chat.id, 'Выберите ваш университет:', reply_markup=markup)
-
-
-def handle_university_selection(message):
-    selected_university = message.text
-    bot.send_message(message.chat.id, f'Вы выбрали {selected_university} для связи со специалистом.')
-    contact_url = get_contact_url_for_university(selected_university)
-    contact_button = types.InlineKeyboardButton("Связаться с нами", url=contact_url)
-    reply_markup = types.InlineKeyboardMarkup().add(contact_button)
-
-    bot.send_message(message.chat.id, 'Нажмите кнопку ниже, чтобы связаться со специалистом:', reply_markup=reply_markup)
-
-
-def get_contact_url_for_university(university):
-    university_contacts = {
-        'КУБГТУ': 'https://t.me/aagrinin',
-        'КУБГМУ': 'https://t.me/s1erben1',
-        'КУБГУ': 'https://t.me/Vou4ok',
-        'ККИРУК': 'https://t.me/gwcbdur91752p2p',
-        'ИМСИТ': 'https://t.me/aagrinin',
-    }
-    return university_contacts.get(university, '')
+    bot.send_message(message.chat.id, 'Пропустили учебный день? Нужно написать много лекций? Не беда, наша команда профессионалов специализируется на написании лекций. Не теряйте времени и доверьтесь нам. Свяжитесь с нами уже сегодня, чтобы получить свою лекцию завтра')
+    markup = types.InlineKeyboardMarkup()
+    contact_button = types.InlineKeyboardButton("Связаться с нами", url="https://t.me/gelya200309")
+    markup.add(contact_button)
+    bot.send_message(message.chat.id, 'Для уточнения деталей работы и обсуждения цен, нажмите кнопку ниже:', reply_markup=markup)
 
 
 # Функция информация для оплаты
+from telebot import types
+
 def show_item_info(message):
-    item_id = message.text.split(maxsplit=1)[1].strip()
-    item_params = get_item_params_by_id(item_id)
+    # Разделяем сообщение на команду и название услуги
+    _, item_name = message.text.split(maxsplit=1)
+    item_name = item_name.strip()  # Убираем лишние пробелы
+    item_params = get_item_params_by_name(item_name)
     if item_params:
-        amount, description, custom_description = item_params['amount'], item_params['description'], item_params.get('custom_description')
+        amount = item_params['amount']
+        custom_description = item_params.get('custom_description', 'Описание отсутствует')
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        button1 = types.KeyboardButton(f'📝 Оформить: {item_id}')
+        button1 = types.KeyboardButton(f'📝 Оформить: {item_name}')
         button2 = types.KeyboardButton('↩️ Назад')
         markup.row(button1, button2)
         item_info = f'Описание: {custom_description}\nСтоимость: {amount} рублей'
         bot.send_message(message.chat.id, item_info, reply_markup=markup)
     else:
-        bot.send_message(message.chat.id, "Товар не найден")
+        bot.send_message(message.chat.id, "Услуга не найдена")
 
 
 def handle_buy_button(message):
     item_id = message.text.split(':')[1].strip()
-    item_params = get_item_params_by_id(item_id)
+    item_params = get_item_params_by_name(item_id)
     if item_params:
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         speed_up_question = f'Хотите ускорить выполнение работы до {item_params["speed_up_time"]} за дополнительную плату {item_params["speed_up_amount"]} рублей?'
@@ -319,11 +313,6 @@ def handle_final_cart_decision(message, item_params, item_id):
         process_delivery_choice(message, item_params, item_id)
     else:
         goodsChapter(message)
-
-
-def get_db_connection():
-    conn = psycopg2.connect(DATABASE_URL)
-    return conn
 
 
 def update_user_info(user_id, username):
