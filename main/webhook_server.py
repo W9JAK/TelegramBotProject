@@ -7,13 +7,14 @@ from config import GROUP_CHAT_ID
 app = Flask(__name__)
 
 
+# Извлекает и возвращает детали заказа по его идентификатору из базы данных
 def get_order_details(order_id):
     conn = get_db_connection()
     order_details = {}
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT order_id, user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents
+                SELECT order_id, user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code 
                 FROM orders
                 WHERE order_id = %s
             """, (order_id,))
@@ -33,7 +34,9 @@ def get_order_details(order_id):
                     'courier_delivery': row[10],
                     'education_institution_name': row[11],
                     'has_contents': row[12],
-                    'contents': row[13]
+                    'contents': row[13],
+                    'source_of_information': row[14],
+                    'promo_code': row[15]
                 }
     except Exception as e:
         print(f"Ошибка при получении деталей заказа {order_id}:", e)
@@ -42,6 +45,7 @@ def get_order_details(order_id):
     return order_details
 
 
+# Обрабатывает вебхук от YooKassa для подтверждения оплаты заказа
 @app.route('/webhook/yookassa', methods=['POST'])
 def yookassa_webhook():
     data = request.json
@@ -72,7 +76,11 @@ def yookassa_webhook():
             f'ID заказчика: {order["user_id"]}\n'
         )
 
-        # Если username доступен, добавляем его в сообщение
+        if order.get("promo_code"):
+            message += f'Промокод: {order["promo_code"]}\n'
+        else:
+            message += f'Откуда узнали: {order.get("source_of_information", "Не указано")}\n'
+
         if user_username:
             message += f'Заказчик: @{user_username}\n'
         else:
