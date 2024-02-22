@@ -2,7 +2,7 @@ import uuid
 from yookassa import Payment
 import psycopg2
 from config import DATABASE_URL
-from telebot import TeleBot
+from telebot import TeleBot, types
 from config import my_token
 
 bot = TeleBot(my_token)
@@ -53,18 +53,18 @@ def handle_messages(message):
         start(message)
     elif message.text in ['🏛️ Университет/Колледж', '🏫 Школа']:
         choose_education_institution(message)
-    elif message.text == '📞 Связаться с нами':
+    elif message.text == '📞 Связаться с нами' or message.text == '/contact':
         handle_contact_button(message)
-    elif message.text == '📖 Услуги':
+    elif message.text == '📖 Услуги' or message.text == '/services':
         goodsChapter(message)
-    elif message.text == '🛒 Корзина':
+    elif message.text == '🛒 Корзина' or message.text == '/cart':
         handle_view_cart(message)
     elif message.text.startswith('📝 Оформить'):
         handle_buy_button(message)
     elif message.text == '↩️ Назад':
         goodsChapter(message)
-    elif message.text == '↩️ Назад в меню':
-        welcome(message)
+    elif message.text == '↩️ Назад в меню' or message.text == '/main_menu':
+        main_menu(message)
     elif message.text == '🆘📚 БПН':
         bpn(message)
     elif message.text == '✏️📔 Лекции':
@@ -94,12 +94,13 @@ def start(message):
 @bot.message_handler(func=lambda message: message.text in ['Университет/Колледж', 'Школа'])
 def choose_education_institution(message):
     if message.text == '🏛️ Университет/Колледж':
-        welcome(message)  # Переходим к приветственному сообщению и меню услуг
+        main_menu(message)  # Переходим к приветственному сообщению и меню услуг
     elif message.text == '🏫 Школа':
         bot.send_message(message.chat.id, "К сожалению, мы пока не предоставляем услуги для школ.", reply_markup=types.ReplyKeyboardRemove())
 
 
-def welcome(message):
+@bot.message_handler(commands=['main_menu'])
+def main_menu(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     button1 = types.KeyboardButton('📖 Услуги')
     contact_button = types.KeyboardButton('📞 Связаться с нами')
@@ -110,6 +111,7 @@ def welcome(message):
     bot.send_message(message.chat.id, 'Перекинул тебя в главное меню!', reply_markup=markup)
 
 
+@bot.message_handler(commands=['services'])
 def goodsChapter(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     items = ['🎓📚 Дипломная работа', '📘📝 Курсовая работа', '📊📢 Итоговый доклад', '🏆📑 Итоговый проект', '📄🔍 Научная статья', '🆘📚 БПН', '✏️📔 Лекции']
@@ -122,6 +124,7 @@ def goodsChapter(message):
 
 
 # Функции для связи с ответственным по заказам и с разработчиком бота
+@bot.message_handler(commands=['contact'])
 def handle_contact_button(message):
     contact_message = 'Выберите, каким способом вы хотите связаться:'
     contact_markup = create_contact_options_markup()
@@ -143,7 +146,7 @@ def create_contact_options_markup():
 def bpn(message):
     bot.send_message(message.chat.id, 'Если вы затянули со сроком выполнения работы, то мы сделаем все за вас в крaтчайшие сроки (цена зависит от срока выполнения работы и ее сложности)')
     markup = types.InlineKeyboardMarkup()
-    contact_button = types.InlineKeyboardButton("Связаться с нами", url="https://t.me/gelya200309")
+    contact_button = types.InlineKeyboardButton("Связаться с нами", url="https://t.me/gelya052004")
     markup.add(contact_button)
     bot.send_message(message.chat.id, 'Для уточнения деталей работы и обсуждения цен, нажмите кнопку ниже:', reply_markup=markup)
 
@@ -151,13 +154,10 @@ def bpn(message):
 def show_lectures_info(message):
     bot.send_message(message.chat.id, 'Пропустили учебный день? Нужно написать много лекций? Не беда, наша команда профессионалов специализируется на написании лекций. Не теряйте времени и доверьтесь нам. Свяжитесь с нами уже сегодня, чтобы получить свою лекцию завтра')
     markup = types.InlineKeyboardMarkup()
-    contact_button = types.InlineKeyboardButton("Связаться с нами", url="https://t.me/gelya200309")
+    contact_button = types.InlineKeyboardButton("Связаться с нами", url="https://t.me/gelya052004")
     markup.add(contact_button)
     bot.send_message(message.chat.id, 'Для уточнения деталей работы и обсуждения цен, нажмите кнопку ниже:', reply_markup=markup)
 
-
-# Функция информация для оплаты
-from telebot import types
 
 def show_item_info(message):
     # Разделяем сообщение на команду и название услуги
@@ -279,42 +279,6 @@ def calculate_total_amount(item_params):
     return total_amount
 
 
-def handle_cart_options_final(message, item_params, item_id):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    add_to_cart_button = types.KeyboardButton('Добавить в корзину')
-    back_button = types.KeyboardButton('↩️ Назад')
-    markup.row(add_to_cart_button)
-    markup.row(back_button)
-
-    bot.send_message(message.chat.id,
-                     f'Итоговая цена: {item_params["amount"]} рублей\n'
-                     'Добавить в корзину?',
-                     reply_markup=markup)
-    bot.register_next_step_handler(message, handle_final_cart_decision, item_params, item_id)
-
-
-def handle_final_cart_decision(message, item_params, item_id):
-    choice = message.text.lower()
-
-    if choice == 'добавить в корзину':
-        user_id = message.from_user.id
-        if item_params:
-            # Отправка сообщения о заказе
-            order_message = bot.send_message(message.chat.id, 'Заказ оформлен. Ожидайте подтверждения.')
-            # Получение ID отправленного сообщения
-            message_id = order_message.message_id
-            # Добавление заказа в БД
-            add_order(user_id, item_id, item_params['amount'], item_params['description'], item_params.get('delivery_selected', False), message_id)
-            bot.send_message(message.chat.id, 'Товар успешно добавлен в корзину!')
-        else:
-            bot.send_message(message.chat.id, 'Произошла ошибка при добавлении товара в корзину.')
-        welcome(message)
-    elif choice == 'назад':
-        process_delivery_choice(message, item_params, item_id)
-    else:
-        goodsChapter(message)
-
-
 def update_user_info(user_id, username):
     conn = get_db_connection()
     try:
@@ -379,7 +343,8 @@ def process_has_contents(message, item_params, item_id):
         msg = bot.send_message(message.chat.id, "Есть ли какие-то пожелания к работе?", reply_markup=types.ReplyKeyboardRemove())
         bot.register_next_step_handler(msg, process_project_requirements, item_params, item_id)
     else:
-        bot.send_message(message.chat.id, "Пожалуйста, выберите 'Да' или 'Нет'.")
+        msg = bot.send_message(message.chat.id,"Не понимаю ваш выбор. Пожалуйста, ответьте 'Да' или 'Нет'.")
+        bot.register_next_step_handler(msg, process_has_contents, item_params, item_id)
         return
 
 
@@ -392,7 +357,6 @@ def process_contents_input(message, item_params, item_id):
 
 def process_project_requirements(message, item_params, item_id):
     item_params['project_requirements'] = message.text
-    # Теперь мы передаем все данные, включая название учебного заведения, для подтверждения заказа
     confirm_order_or_proceed(message, item_params, item_id)
 
 
@@ -408,7 +372,6 @@ def confirm_order_or_proceed(message, item_params, item_id):
 def final_confirmation(message, item_params, item_id):
     choice = message.text
     if choice == 'Подтвердить заказ':
-        # Извлекаем необходимые данные из item_params
         user_id = message.from_user.id
         amount = item_params['amount']
         description = item_params['description']
@@ -425,7 +388,7 @@ def final_confirmation(message, item_params, item_id):
                   item_params.get('has_contents', False), item_params.get('contents', ''))
 
         bot.send_message(message.chat.id, "Ваш заказ подтвержден и добавлен в корзину!", reply_markup=types.ReplyKeyboardRemove())
-        welcome(message)
+        handle_view_cart(message)
     elif choice == '↩️ Назад в меню':
         goodsChapter(message)
 
@@ -460,7 +423,7 @@ def process_new_project_requirements(message, user_id):
     order_id = temp_storage[user_id]['order_id']
     update_order_details(order_id, temp_storage[user_id]['project_title'], temp_storage[user_id]['project_description'], new_requirements)
     bot.send_message(message.chat.id, "Детали заказа обновлены.")
-    welcome(message)
+    handle_view_cart(message)
 
 
 def update_order_details(order_id, project_title, project_description, project_requirements):
@@ -493,7 +456,6 @@ def add_order(user_id, item_id, amount, description, delivery_selected, project_
         print("Ошибка при добавлении заказа:", e)
     finally:
         conn.close()
-
 
 
 # Получение message_id по order_id
@@ -574,16 +536,15 @@ def callback_query(call):
                           text="Заказ удалён.")
 
 
-@bot.message_handler(func=lambda message: message.text == '🛒 Корзина')
+@bot.message_handler(commands=['cart'])
 def handle_view_cart(message):
     user_id = message.from_user.id
     orders = get_user_orders(user_id)
     if orders:
         for order in orders:
-            # Подготовка текста сообщения с дополнительной информацией
             speed_up_text = "Да" if order['speed_up'] else "Нет"
             courier_delivery_text = "Да" if order['courier_delivery'] else "Нет"
-            contents_text = order['contents'] if order['has_contents'] else "Содержание: Нет"
+            contents_text = order['contents'] if order['has_contents'] else "Нет"
             order_details = f'{order["description"]} за {order["amount"]} рублей\n' \
                             f'Название учебного заведения: {order["education_institution_name"]}\n' \
                             f'Тема работы: {order["project_title"]}\n' \
@@ -597,11 +558,18 @@ def handle_view_cart(message):
             pay_button = types.InlineKeyboardButton(text="Оплатить", url=payment_link)
             delete_button = types.InlineKeyboardButton(text="Удалить", callback_data=f"delete_{order['order_id']}")
             edit_button = types.InlineKeyboardButton(text="Редактировать", callback_data=f"edit_{order['order_id']}")
-            markup.add(pay_button, delete_button, edit_button)
+            menu_button = types.InlineKeyboardButton(text="Меню", callback_data="back_to_menu")
+            markup.add(pay_button, delete_button, menu_button)
+            markup.add(edit_button)
             bot.send_message(message.chat.id, order_details, reply_markup=markup)
     else:
         bot.send_message(message.chat.id, "Ваша корзина пуста.")
 
+
+@bot.callback_query_handler(func=lambda call: call.data == 'back_to_menu')
+def callback_back_to_menu(call):
+    bot.answer_callback_query(call.id)
+    main_menu(call.message)
 
 # Функция для создания платежа
 def create_payment(amount, description, order_id):
