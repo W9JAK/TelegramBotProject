@@ -1,5 +1,6 @@
 import psycopg2
 from config import DATABASE_URL
+import traceback
 
 
 # Возвращает соединение с базой данных.
