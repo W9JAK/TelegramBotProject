@@ -1,52 +1,14 @@
-import uuid
-from yookassa import Payment
-import psycopg2
-from config import DATABASE_URL
 from telebot import TeleBot, types
-from config import my_token
+from config import my_token, ADMIN_CHAT_ID_1, ADMIN_CHAT_ID_2
+from datetime import datetime
+import re
+from db import get_item_params_by_name, update_user_info, get_user_username, add_order, delete_order, get_user_orders, get_order_details
+
 
 bot = TeleBot(my_token)
 
 
-# Возвращает соединение с базой данных.
-def get_db_connection():
-    conn = psycopg2.connect(DATABASE_URL)
-    return conn
-
-
 answers = ['Я не понял, что ты хочешь сказать.', 'Извини, я тебя не понимаю.', 'Я не знаю такой команды.', 'Мой разработчик не говорил, что отвечать в такой ситуации... >_<']
-
-
-temp_storage = {}
-
-
-# Извлекает параметры услуги по ее названию из базы данных.
-def get_item_params_by_name(name):
-    conn = get_db_connection()
-    item_params = {}
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                SELECT name, amount, description, custom_description, speed_up_amount, speed_up_time, additional_delivery_cost
-                FROM items
-                WHERE name = %s
-            """, (name,))
-            row = cursor.fetchone()
-            if row:
-                item_params = {
-                    'name': row[0],
-                    'amount': row[1],
-                    'description': row[2],
-                    'custom_description': row[3],
-                    'speed_up_amount': row[4],
-                    'speed_up_time': row[5],
-                    'additional_delivery_cost': row[6]
-                }
-    except Exception as e:
-        print(f"Ошибка при получении данных об услуге {name}: {e}")
-    finally:
-        conn.close()
-    return item_params
 
 
 # Обрабатывает входящие сообщения и реагирует на команды или текст сообщений.
@@ -72,7 +34,7 @@ def handle_messages(message):
         bpn(message)
     elif message.text == '✏️📔 Лекции':
         show_lectures_info(message)
-    elif message.text in ['🎓📚 Дипломная работа', '📘📝 Курсовая работа', '📊📢 Итоговый доклад', '🏆📑 Итоговый проект', '📄🔍 Научная статья']:
+    elif message.text in ['🎓📚 Дипломная работа', '📘📝 Курсовая работа', '📊📢 Итоговый доклад', '🏆📑 Итоговый проект', '📄🔍 Научная статья', '🛠️📖Практическая работа', '✨🛠️📖Уникальная практическая работа', '🎥📊Презентация', '🗣️📑Доклад', '🗣️🎥📊Доклад + презентация', '📝🎉Сценарий для мероприятий']:
         show_item_info(message)
     else:
         bot.send_message(message.chat.id, answers[0])
@@ -120,7 +82,7 @@ def main_menu(message):
 @bot.message_handler(commands=['services'])
 def goodsChapter(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    items = ['🎓📚 Дипломная работа', '📘📝 Курсовая работа', '📊📢 Итоговый доклад', '🏆📑 Итоговый проект', '📄🔍 Научная статья', '🆘📚 БПН', '✏️📔 Лекции']
+    items = ['🎓📚 Дипломная работа', '📘📝 Курсовая работа', '📊📢 Итоговый доклад', '🏆📑 Итоговый проект', '📄🔍 Научная статья', '🆘📚 БПН', '✏️📔 Лекции', '🛠️📖Практическая работа', '✨🛠️📖Уникальная практическая работа', '🎥📊Презентация', '🗣️📑Доклад', '🗣️🎥📊Доклад + презентация', '📝🎉Сценарий для мероприятий']
     buttons = [types.KeyboardButton(item) for item in items]
     for button in buttons:
         markup.add(button)
@@ -132,7 +94,7 @@ def goodsChapter(message):
 # Отправляет сообщение с вариантами связи.
 @bot.message_handler(commands=['contact'])
 def handle_contact_button(message):
-    contact_message = 'Выберите, каким способом вы хотите связаться:'
+    contact_message = 'Для связи нажмите кнопку ниже:'
     contact_markup = create_contact_options_markup()
 
     bot.send_message(message.chat.id, contact_message, reply_markup=contact_markup)
@@ -141,9 +103,7 @@ def handle_contact_button(message):
 # Создает инлайн-клавиатуру с вариантами контактов.
 def create_contact_options_markup():
     markup = types.InlineKeyboardMarkup()
-    responsible_button = types.InlineKeyboardButton("Связаться с ответственным по заказам", url="https://t.me/gelya200309")
-    developer_button = types.InlineKeyboardButton("Связаться с разработчиком бота", url="https://t.me/aagrinin")
-    markup.row(developer_button)
+    responsible_button = types.InlineKeyboardButton("Связаться с ответственным по заказам", url="https://t.me/gelya052004")
     markup.row(responsible_button)
 
     return markup
@@ -168,9 +128,22 @@ def show_lectures_info(message):
 
 
 # Показывает информацию о выбранной услуге или товаре.
+def remove_emojis(text):
+    emoji_pattern = re.compile("["
+                               u"\U0001F600-\U0001F64F" 
+                               u"\U0001F300-\U0001F5FF"  
+                               u"\U0001F680-\U0001F6FF"  
+                               u"\U0001F1E0-\U0001F1FF"  
+                               u"\U00002702-\U000027B0"
+                               u"\U000024C2-\U0001F251"
+                               "]+", flags=re.UNICODE)
+    return emoji_pattern.sub(r'', text)
+
+
+# Показывает информацию о выбранной услуге или товаре.
 def show_item_info(message):
-    _, item_name = message.text.split(maxsplit=1)
-    item_name = item_name.strip()
+    item_name = remove_emojis(message.text).strip()
+
     item_params = get_item_params_by_name(item_name)
     if item_params:
         amount = item_params['amount']
@@ -284,41 +257,6 @@ def calculate_total_amount(item_params):
     return total_amount
 
 
-# Обновляет информацию о пользователе в базе данных.
-def update_user_info(user_id, username):
-    conn = get_db_connection()
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                INSERT INTO users (user_id, username)
-                VALUES (%s, %s)
-                ON CONFLICT (user_id) DO UPDATE
-                SET username = EXCLUDED.username;
-            """, (user_id, username))
-        conn.commit()
-    except Exception as e:
-        print(f"Ошибка при обновлении информации пользователя {user_id}: {e}")
-    finally:
-        conn.close()
-
-
-# Возвращает имя пользователя по его идентификатору из базы данных.
-def get_user_username(user_id):
-    conn = get_db_connection()
-    username = None
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT username FROM users WHERE user_id = %s", (user_id,))
-            result = cursor.fetchone()
-            if result:
-                username = result[0]
-    except Exception as e:
-        print(f"Ошибка при получении username пользователя {user_id}: {e}")
-    finally:
-        conn.close()
-    return username
-
-
 # Обрабатывает ввод названия учебного заведения пользователя.
 def process_education_institution_name(message, item_params, item_id):
     item_params['education_institution_name'] = message.text
@@ -335,12 +273,30 @@ def process_project_title(message, item_params, item_id):
 
 # Обрабатывает ввод методических указаний или описания работы.
 def process_project_description(message, item_params, item_id):
-    item_params['project_description'] = message.text
+    response_text = ""
+
+    if message.content_type == 'document':
+        # Сохраняем file_id документа и дополнительные сведения о файле
+        item_params['project_description_file_id'] = message.document.file_id
+        item_params['file_name'] = message.document.file_name
+        item_params['file_size'] = message.document.file_size
+        item_params['project_description'] = "Файл с методическими указаниями прикреплен."
+        response_text = "Файл с методическими указаниями получен."
+    elif message.content_type == 'text':
+        # Если пользователь отправил текстовое сообщение, сохраняем его как описание
+        item_params['project_description'] = message.text
+        item_params['project_description_file_id'] = None
+        response_text = "Описание проекта получено."
+
+    # Отправляем подтверждение пользователю
+    bot.send_message(message.chat.id, response_text)
+
+    # Запрос наличия содержания работы
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     yes_button = types.KeyboardButton('Да')
     no_button = types.KeyboardButton('Нет')
     markup.add(yes_button, no_button)
-    msg = bot.send_message(message.chat.id, "Есть ли у вас содержание работы? В случае его отсутствия мы составим содержание сами за дополнительную плату 300 рублей", reply_markup=markup)
+    msg = bot.send_message(message.chat.id, "Есть ли у вас содержание работы? В случае его отсутствия мы составим содержание сами за дополнительную плату 300 рублей.", reply_markup=markup)
     bot.register_next_step_handler(msg, process_has_contents, item_params, item_id)
 
 
@@ -414,7 +370,7 @@ def confirm_order_or_proceed(message, item_params, item_id):
     bot.register_next_step_handler(msg, final_confirmation, item_params, item_id)
 
 
-# Обрабатывает окончательное подтверждение заказа пользователем
+# Обрабатывает окончательное подтверждение заказа пользователем.
 def final_confirmation(message, item_params, item_id):
     choice = message.text
     if choice == 'Подтвердить заказ':
@@ -428,42 +384,21 @@ def final_confirmation(message, item_params, item_id):
         speed_up = item_params.get('speed_up', False)
         courier_delivery = item_params.get('courier_delivery', False)
         education_institution_name = item_params.get('education_institution_name', '')
-        source_of_information = item_params.get('source_of_information', '')  # Новый параметр
+        source_of_information = item_params.get('source_of_information', '')
         promo_code = item_params.get('promo_code', '')
+        project_description_file_id = item_params.get('project_description_file_id', None)
+        file_name = item_params.get('file_name', None)
+        file_size = item_params.get('file_size', None)
 
         add_order(user_id, item_id, amount, description, delivery_selected, project_title, project_description,
                   project_requirements, speed_up, courier_delivery, education_institution_name,
-                  item_params.get('has_contents', False), item_params.get('contents', ''), source_of_information, promo_code)
+                  item_params.get('has_contents', False), item_params.get('contents', ''), source_of_information, promo_code,
+                  project_description_file_id, file_name, file_size)
 
         bot.send_message(message.chat.id, "Ваш заказ подтвержден и добавлен в корзину!", reply_markup=types.ReplyKeyboardRemove())
         handle_view_cart(message)
     elif choice == '↩️ Назад в меню':
         goodsChapter(message)
-
-
-# Добавляет заказ в базу данных со всеми указанными параметрами.
-def add_order(user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code):
-    conn = psycopg2.connect(DATABASE_URL)
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                INSERT INTO orders (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code))
-            conn.commit()
-    except Exception as e:
-        print("Ошибка при добавлении заказа:", e)
-    finally:
-        conn.close()
-
-
-# Удаляет заказ из базы данных по его идентификатору.
-def delete_order(order_id):
-    conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute("DELETE FROM orders WHERE order_id = %s", (order_id,))
-        conn.commit()
-    conn.close()
 
 
 # Обрабатывает запрос на удаление заказа через callback-запрос от кнопки.
@@ -472,47 +407,10 @@ def handle_delete_order(call):
     order_id = call.data.split('_')[1]
     delete_order(order_id)
 
-    # Обновляем текст сообщения, убирая информацию о заказе и ссылку на оплату
     bot.edit_message_text(chat_id=call.message.chat.id,
                           message_id=call.message.message_id,
                           text=f"Заказ удален из корзины.")
     bot.answer_callback_query(call.id, f"Заказ удален из корзины.")
-
-
-# Возвращает список заказов конкретного пользователя.
-def get_user_orders(user_id):
-    conn = psycopg2.connect(DATABASE_URL)
-    orders = []
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                SELECT order_id, user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code
-                FROM orders
-                WHERE user_id = %s
-            """, (user_id,))
-            orders = [{
-                'order_id': row[0],
-                'user_id': row[1],
-                'item_id': row[2],
-                'amount': row[3],
-                'description': row[4],
-                'delivery_selected': row[5],
-                'project_title': row[6],
-                'project_description': row[7],
-                'project_requirements': row[8],
-                'speed_up': row[9],
-                'courier_delivery': row[10],
-                'education_institution_name': row[11],
-                'has_contents': row[12],
-                'contents': row[13],
-                'source_of_information': row[14],
-                'promo_code': row[15]
-            } for row in cursor.fetchall()]
-    except Exception as e:
-        print("Ошибка при получении заказов пользователя:", e)
-    finally:
-        conn.close()
-    return orders
 
 
 # Отображает пользователю содержимое его корзины
@@ -522,23 +420,21 @@ def handle_view_cart(message):
     orders = get_user_orders(user_id)
     if orders:
         for order in orders:
-            speed_up_text = "Да" if order['speed_up'] else "Нет"
-            courier_delivery_text = "Да" if order['courier_delivery'] else "Нет"
-            contents_text = order['contents'] if order['has_contents'] else "Нет"
             order_details = f'{order["description"]} за {order["amount"]} рублей\n' \
                             f'Название учебного заведения: {order["education_institution_name"]}\n' \
                             f'Тема работы: {order["project_title"]}\n' \
                             f'Методические указания: {order["project_description"]}\n' \
-                            f'Содержание: {contents_text}\n' \
+                            f'Содержание: {order.get("contents", "Не указано")}\n' \
                             f'Пожелания к работе: {order["project_requirements"]}\n' \
-                            f'Ускоренное выполнение: {speed_up_text}\n' \
-                            f'Курьерская доставка: {courier_delivery_text}'
-            payment_link = create_payment(order["amount"], order["description"], order["order_id"])
+                            f'Ускоренное выполнение: {"Да" if order["speed_up"] else "Нет"}\n' \
+                            f'Курьерская доставка: {"Да" if order["courier_delivery"] else "Нет"}'
+
             markup = types.InlineKeyboardMarkup()
-            pay_button = types.InlineKeyboardButton(text="Оплатить", url=payment_link)
+            pay_button = types.InlineKeyboardButton(text="Оплатить", callback_data=f"pay_{order['order_id']}")
             delete_button = types.InlineKeyboardButton(text="Удалить", callback_data=f"delete_{order['order_id']}")
             menu_button = types.InlineKeyboardButton(text="Меню", callback_data="back_to_menu")
-            markup.add(pay_button, menu_button, delete_button)
+
+            markup.add(pay_button, delete_button, menu_button)
 
             bot.send_message(message.chat.id, order_details, reply_markup=markup)
     else:
@@ -552,24 +448,56 @@ def callback_back_to_menu(call):
     main_menu(call.message)
 
 
-# Функция для создания платежа
-def create_payment(amount, description, order_id):
-    return_url = 'https://your-website.com/success-page'  # URL, на который пользователь будет перенаправлен после оплаты
-    payment = Payment.create({
-        "amount": {
-            "value": str(amount),
-            "currency": "RUB"
-        },
-        "confirmation": {
-            "type": "redirect",
-            "return_url": return_url
-        },
-        "metadata": {
-            "order_id": str(order_id)
-        },
-        "description": description
-    }, uuid.uuid4())
-    return payment.confirmation.confirmation_url
+admin_1_services = ['Дипломная работа', 'Курсовая работа', 'Итоговый проект', 'Научная статья']
+admin_2_services = ['Итоговый доклад', 'Практическая работа', 'Уникальная практическая работа', 'Презентация', 'Доклад', 'Доклад + презентация', 'Сценарий для мероприятий']
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('pay_'))
+def handle_payment(call):
+    order_id = call.data.split('_')[1]
+    order = get_order_details(order_id)
+    if order:
+        user_username = get_user_username(order['user_id'])
+        payment_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        admin_chat_id = ADMIN_CHAT_ID_1 if order["description"] in admin_1_services else ADMIN_CHAT_ID_2
+
+        # Собираем сообщение для админа
+        message_to_admin = (
+            f'{order["description"]} за {order["amount"]} рублей\n'
+            f'Название учебного заведения: {order["education_institution_name"]}\n'
+            f'Тема работы: {order["project_title"]}\n'
+            f'Методические указания: {order["project_description"]}\n'
+            f'Содержание: {order.get("contents", "Не указано")}\n'
+            f'Пожелания к работе: {order["project_requirements"]}\n'
+            f'Ускоренное выполнение: {"Да" if order["speed_up"] else "Нет"}\n'
+            f'Курьерская доставка: {"Да" if order["courier_delivery"] else "Нет"}\n'
+            f'Время "оплаты": {payment_time}\n'
+            f'ID заказчика: {order["user_id"]}\n'
+        )
+
+        if order.get("promo_code"):
+            message_to_admin += f'Промокод: {order["promo_code"]}\n'
+        else:
+            message_to_admin += f'Откуда узнали: {order.get("source_of_information", "Не указано")}\n'
+
+        if user_username:
+            message_to_admin += f'Заказчик: @{user_username}\n'
+        else:
+            message_to_admin += 'Информация о заказчике недоступна.\n'
+
+        bot.send_message(admin_chat_id, message_to_admin)
+
+        if order.get("project_description_file_id"):
+            file_id = order["project_description_file_id"]
+            try:
+                bot.send_document(admin_chat_id, file_id, caption="Методические указания к заказу.")
+            except Exception as e:
+                print(f"Ошибка при отправке файла: {e}")
+                bot.send_message(admin_chat_id, "Ошибка при отправке файла методических указаний.")
+        else:
+            bot.answer_callback_query(call.id, "Файл методических указаний не прикреплен к заказу.")
+    else:
+        bot.answer_callback_query(call.id, "Ошибка: заказ не найден.")
 
 
 # Запускает бота и обрабатывает входящие сообщения в бесконечном цикле.
