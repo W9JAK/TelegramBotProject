@@ -1,10 +1,11 @@
-version: "3.3"
+version: "2.1"
 services:
   bot:
     build:
       context: .
       dockerfile: Dockerfile
     command: python3 main/main.py
+    restart: always
     volumes:
       - .:/code
     links:
@@ -14,7 +15,7 @@ services:
       db:
           condition: service_healthy
       dbmate:
-          condition: service_completed_successfully
+          condition: service_started
   db:
     image: postgres
     ports:
