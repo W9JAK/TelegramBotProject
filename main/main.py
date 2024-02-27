@@ -16,7 +16,7 @@ answers = ['Я не понял, что ты хочешь сказать.', 'Из
 def handle_messages(message):
     if message.text == '/start':
         start(message)
-    elif message.text in ['🏛️ Университет/Колледж', '🏫 Школа'] or '↩️ Вернуться к выбору':
+    elif message.text in ['🏛️ Университет/Колледж', '🏫 Школа']:
         choose_education_institution(message)
     elif message.text == '📞 Связаться с нами' or message.text == '/contact':
         handle_contact_button(message)
@@ -63,8 +63,6 @@ def choose_education_institution(message):
         main_menu(message)
     elif message.text == '🏫 Школа':
         bot.send_message(message.chat.id, "К сожалению, мы пока не предоставляем услуги для школ.", reply_markup=types.ReplyKeyboardRemove())
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        markup.add(types.KeyboardButton('↩️ Вернуться к выбору'))
 
 
 # Показывает главное меню бота с доступными опциями.
