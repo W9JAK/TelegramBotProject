@@ -16,7 +16,7 @@ answers = ['Я не понял, что ты хочешь сказать.', 'Из
 def handle_messages(message):
     if message.text == '/start':
         start(message)
-    elif message.text in ['🏛️ Университет/Колледж', '🏫 Школа']:
+    elif message.text in ['🏛️ Университет/Колледж', '🏫 Школа'] or '↩️ Вернуться к выбору':
         choose_education_institution(message)
     elif message.text == '📞 Связаться с нами' or message.text == '/contact':
         handle_contact_button(message)
@@ -50,7 +50,7 @@ def start(message):
     username = message.from_user.username
     update_user_info(user_id, username)
     bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name}!\n'
-                                      f'Вас приветствует компания StudyHelp!\n'
+                                      f'Вас приветствует компания FreeBies!\n'
                                       f'Здесь ты можешь оформить заказ на наши услуги.',
                      reply_markup=markup)
     bot.send_message(message.chat.id, "Выберите ваше образовательное учреждение:", reply_markup=markup)
@@ -63,6 +63,8 @@ def choose_education_institution(message):
         main_menu(message)
     elif message.text == '🏫 Школа':
         bot.send_message(message.chat.id, "К сожалению, мы пока не предоставляем услуги для школ.", reply_markup=types.ReplyKeyboardRemove())
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.add(types.KeyboardButton('↩️ Вернуться к выбору'))
 
 
 # Показывает главное меню бота с доступными опциями.
@@ -456,12 +458,12 @@ admin_2_services = ['Итоговый доклад', 'Практическая �
 def handle_payment(call):
     order_id = call.data.split('_')[1]
     order = get_order_details(order_id)
+    chat_id = call.message.chat.id
     if order:
         user_username = get_user_username(order['user_id'])
         payment_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         admin_chat_id = ADMIN_CHAT_ID_1 if order["description"] in admin_1_services else ADMIN_CHAT_ID_2
 
-        # Собираем сообщение для админа
         message_to_admin = (
             f'{order["description"]} за {order["amount"]} рублей\n'
             f'Название учебного заведения: {order["education_institution_name"]}\n'
@@ -496,6 +498,9 @@ def handle_payment(call):
                 bot.send_message(admin_chat_id, "Ошибка при отправке файла методических указаний.")
         else:
             bot.answer_callback_query(call.id, "Файл методических указаний не прикреплен к заказу.")
+
+        user_message = "Ваш заказ передан на рассмотрение!\nC вами свяжется администратор для подтверждения заказа (с 8:00 до 20:00)."
+        bot.send_message(chat_id, user_message)
     else:
         bot.answer_callback_query(call.id, "Ошибка: заказ не найден.")
 
