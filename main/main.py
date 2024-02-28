@@ -497,7 +497,7 @@ def handle_payment(call):
         else:
             bot.answer_callback_query(call.id, "Файл методических указаний не прикреплен к заказу.")
 
-        user_message = "Ваш заказ передан на рассмотрение!\nC вами свяжется администратор для подтверждения заказа (с 8:00 до 20:00)."
+        user_message = "Ваш заказ передан на рассмотрение!C вами свяжется администратор для подтверждения заказа (с 8:00 до 20:00)."
         bot.send_message(chat_id, user_message)
     else:
         bot.answer_callback_query(call.id, "Ошибка: заказ не найден.")
