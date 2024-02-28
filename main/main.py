@@ -16,7 +16,11 @@ answers = ['Я не понял, что ты хочешь сказать.', 'Из
 def handle_messages(message):
     if message.text == '/start':
         start(message)
-    elif message.text in ['🏛️ Университет/Колледж', '🏫 Школа']:
+    elif message.text == '🏛️ Университет/Колледж':
+        main_menu(message)
+    elif message.text == '🏫 Школа':
+        send_school_message(message.chat.id)
+    elif message.text == '↩️ Вернуться к выбору':
         choose_education_institution(message)
     elif message.text == '📞 Связаться с нами' or message.text == '/contact':
         handle_contact_button(message)
@@ -40,6 +44,28 @@ def handle_messages(message):
         bot.send_message(message.chat.id, answers[0])
 
 
+# Функция для отправки сообщения о том, что услуги для школ не предоставляются
+def send_school_message(chat_id):
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.add(types.KeyboardButton("↩️ Вернуться к выбору"))
+
+    bot.send_message(chat_id, "К сожалению, мы пока не предоставляем услуги для школ.", reply_markup=keyboard)
+
+
+@bot.message_handler(func=lambda message: message.text in ['Университет/Колледж', 'Школа', '↩️ Вернуться к выбору'])
+def choose_education_institution(message):
+    if message.text == '🏛️ Университет/Колледж':
+        main_menu(message)
+    elif message.text == '🏫 Школа':
+        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        keyboard.add(types.KeyboardButton("↩️ Вернуться к выбору"))
+        bot.send_message(message.chat.id, "К сожалению, мы пока не предоставляем услуги для школ.", reply_markup=keyboard)
+    elif message.text == '↩️ Вернуться к выбору':
+        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        keyboard.add(types.KeyboardButton("🏛️ Университет/Колледж"), types.KeyboardButton("🏫 Школа"))
+        bot.send_message(message.chat.id, "Выберите тип образовательного учреждения:", reply_markup=keyboard)
+
+
 # Отправляет приветственное сообщение и предлагает выбрать образовательное учреждение.
 def start(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -56,15 +82,6 @@ def start(message):
     bot.send_message(message.chat.id, "Выберите ваше образовательное учреждение:", reply_markup=markup)
 
 
-# Обрабатывает выбор образовательного учреждения.
-@bot.message_handler(func=lambda message: message.text in ['Университет/Колледж', 'Школа'])
-def choose_education_institution(message):
-    if message.text == '🏛️ Университет/Колледж':
-        main_menu(message)
-    elif message.text == '🏫 Школа':
-        bot.send_message(message.chat.id, "К сожалению, мы пока не предоставляем услуги для школ.", reply_markup=types.ReplyKeyboardRemove())
-
-
 # Показывает главное меню бота с доступными опциями.
 @bot.message_handler(commands=['main_menu'])
 def main_menu(message):
@@ -72,9 +89,13 @@ def main_menu(message):
     button1 = types.KeyboardButton('📖 Услуги')
     contact_button = types.KeyboardButton('📞 Связаться с нами')
     cart_button = types.KeyboardButton('🛒 Корзина')
+    return_button = types.KeyboardButton('↩️ Вернуться к выбору')
+
     markup.row(button1)
     markup.row(contact_button)
     markup.row(cart_button)
+    markup.row(return_button)
+
     bot.send_message(message.chat.id, 'Перекинул тебя в главное меню!', reply_markup=markup)
 
 
@@ -273,31 +294,27 @@ def process_project_title(message, item_params, item_id):
 
 # Обрабатывает ввод методических указаний или описания работы.
 def process_project_description(message, item_params, item_id):
-    response_text = ""
-
     if message.content_type == 'document':
-        # Сохраняем file_id документа и дополнительные сведения о файле
         item_params['project_description_file_id'] = message.document.file_id
         item_params['file_name'] = message.document.file_name
         item_params['file_size'] = message.document.file_size
         item_params['project_description'] = "Файл с методическими указаниями прикреплен."
-        response_text = "Файл с методическими указаниями получен."
     elif message.content_type == 'text':
-        # Если пользователь отправил текстовое сообщение, сохраняем его как описание
         item_params['project_description'] = message.text
         item_params['project_description_file_id'] = None
-        response_text = "Описание проекта получено."
 
-    # Отправляем подтверждение пользователю
-    bot.send_message(message.chat.id, response_text)
-
-    # Запрос наличия содержания работы
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    yes_button = types.KeyboardButton('Да')
-    no_button = types.KeyboardButton('Нет')
-    markup.add(yes_button, no_button)
-    msg = bot.send_message(message.chat.id, "Есть ли у вас содержание работы? В случае его отсутствия мы составим содержание сами за дополнительную плату 300 рублей.", reply_markup=markup)
-    bot.register_next_step_handler(msg, process_has_contents, item_params, item_id)
+    # Проверяем, является ли тип проекта тем, для которого нужно запросить содержание работы
+    if item_params.get('name') in ['Итоговый проект', 'Итоговый доклад', 'Курсовая работа', 'Дипломная работа']:
+        # Запрашиваем наличие содержания работы
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        yes_button = types.KeyboardButton('Да')
+        no_button = types.KeyboardButton('Нет')
+        markup.add(yes_button, no_button)
+        msg = bot.send_message(message.chat.id, "Есть ли у вас содержание работы? В случае его отсутствия мы составим содержание сами за дополнительную плату 300 рублей.", reply_markup=markup)
+        bot.register_next_step_handler(msg, process_has_contents, item_params, item_id)
+    else:
+        msg = bot.send_message(message.chat.id, "Есть ли какие-то пожелания к работе?", reply_markup=types.ReplyKeyboardRemove())
+        bot.register_next_step_handler(msg, process_project_requirements, item_params, item_id)
 
 
 # Запрашивает наличие у пользователя содержания работы.
@@ -497,7 +514,7 @@ def handle_payment(call):
         else:
             bot.answer_callback_query(call.id, "Файл методических указаний не прикреплен к заказу.")
 
-        user_message = "Ваш заказ передан на рассмотрение!C вами свяжется администратор для подтверждения заказа (с 8:00 до 20:00)."
+        user_message = "Ваш заказ передан на рассмотрение! C вами свяжется администратор для подтверждения заказа (с 8:00 до 20:00)."
         bot.send_message(chat_id, user_message)
     else:
         bot.answer_callback_query(call.id, "Ошибка: заказ не найден.")
