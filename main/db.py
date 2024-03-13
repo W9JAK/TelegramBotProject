@@ -37,17 +37,45 @@ def get_item_params_by_name(name):
     return item_params
 
 
+def get_item_params_by_name_and_type(name, institution_type):
+    conn = get_db_connection()
+    item_params = {}
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT name, amount, description, custom_description, speed_up_amount, speed_up_time, additional_delivery_cost
+                FROM items
+                WHERE name = %s AND institution_type = %s
+            """, (name, institution_type))
+            row = cursor.fetchone()
+            if row:
+                item_params = {
+                    'name': row[0],
+                    'amount': row[1],
+                    'description': row[2],
+                    'custom_description': row[3],
+                    'speed_up_amount': row[4],
+                    'speed_up_time': row[5],
+                    'additional_delivery_cost': row[6]
+                }
+    except Exception as e:
+        print(f"Ошибка при получении данных об услуге {name} для {institution_type}: {e}")
+    finally:
+        conn.close()
+    return item_params
+
+
 # Обновляет информацию о пользователе в базе данных.
-def update_user_info(user_id, username):
+def update_user_info(user_id, username, institution_type):
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                INSERT INTO users (user_id, username)
-                VALUES (%s, %s)
+                INSERT INTO users (user_id, username, institution_type)
+                VALUES (%s, %s, %s)
                 ON CONFLICT (user_id) DO UPDATE
-                SET username = EXCLUDED.username;
-            """, (user_id, username))
+                SET username = EXCLUDED.username, institution_type = EXCLUDED.institution_type;
+            """, (user_id, username, institution_type))
         conn.commit()
     except Exception as e:
         print(f"Ошибка при обновлении информации пользователя {user_id}: {e}")
@@ -72,15 +100,49 @@ def get_user_username(user_id):
     return username
 
 
+def get_user_institution_type(user_id):
+    conn = get_db_connection()
+    institution_type = None
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT institution_type FROM users WHERE user_id = %s", (user_id,))
+            result = cursor.fetchone()
+            if result:
+                institution_type = result[0]
+    except Exception as e:
+        print(f"Ошибка при получении типа учреждения пользователя {user_id}: {e}")
+    finally:
+        conn.close()
+    return institution_type
+
+
+def get_services_by_institution_type(institution_type):
+    conn = get_db_connection()
+    services = []
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT name, amount, description, custom_description
+                FROM items
+                WHERE institution_type = %s
+            """, (institution_type,))
+            services = [{'name': row[0], 'amount': row[1], 'description': row[2], 'custom_description': row[3]} for row in cursor.fetchall()]
+    except Exception as e:
+        print(f"Ошибка при получении услуг для {institution_type}: {e}")
+    finally:
+        conn.close()
+    return services
+
+
 # Добавляет заказ в базу данных со всеми указанными параметрами.
-def add_order(user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code, project_description_file_id=None, file_name=None, file_size=None):
+def add_order(user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, project_description_file_id=None, file_name=None, file_size=None):
     conn = psycopg2.connect(DATABASE_URL)
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                INSERT INTO orders (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code, project_description_file_id, file_name, file_size)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code, project_description_file_id, file_name, file_size))
+                INSERT INTO orders (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, project_description_file_id, file_name, file_size)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, project_description_file_id, file_name, file_size))
             conn.commit()
     except Exception as e:
         print("Ошибка при добавлении заказа:", e)
@@ -143,7 +205,7 @@ def get_order_details(order_id):
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT order_id, user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code, project_description_file_id, file_name, file_size
+                SELECT order_id, user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, project_description_file_id, file_name, file_size
                 FROM orders
                 WHERE order_id = %s
             """, (order_id,))
@@ -166,9 +228,11 @@ def get_order_details(order_id):
                     'contents': row[13],
                     'source_of_information': row[14],
                     'promo_code': row[15],
-                    'project_description_file_id': row[16],
-                    'file_name': row[17],
-                    'file_size': row[18]
+                    'contact_method': row[16],
+                    'institution_type': row[17],
+                    'project_description_file_id': row[18],
+                    'file_name': row[19],
+                    'file_size': row[20]
                 }
     except Exception as e:
         print(f"Ошибка при получении деталей заказа {order_id}:", e)

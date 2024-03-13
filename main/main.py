@@ -2,7 +2,7 @@ from telebot import TeleBot, types
 from config import my_token, ADMIN_CHAT_ID_1, ADMIN_CHAT_ID_2
 from datetime import datetime
 import re
-from db import get_item_params_by_name, update_user_info, get_user_username, add_order, delete_order, get_user_orders, get_order_details
+from db import get_item_params_by_name, update_user_info, get_user_username, add_order, delete_order, get_user_orders, get_order_details, get_user_institution_type, get_services_by_institution_type, get_item_params_by_name_and_type
 
 
 bot = TeleBot(my_token)
@@ -14,32 +14,30 @@ answers = ['Я не понял, что ты хочешь сказать.', 'Из
 # Обрабатывает входящие сообщения и реагирует на команды или текст сообщений.
 @bot.message_handler(func=lambda message: True)
 def handle_messages(message):
+    user_id = message.from_user.id
     if message.text == '/start':
         start(message)
-    elif message.text == '🏛️ Университет/Колледж':
-        main_menu(message)
-    elif message.text == '🏫 Школа':
-        send_school_message(message.chat.id)
-    elif message.text == '↩️ Вернуться к выбору':
+    elif message.text in ['🏛️ Университет/Колледж', '🏫 Школа']:
         choose_education_institution(message)
+    elif message.text == '↩️ Вернуться к выбору':
+        start(message)
     elif message.text == '📞 Связаться с нами' or message.text == '/contact':
         handle_contact_button(message)
     elif message.text == '📖 Услуги' or message.text == '/services':
-        goodsChapter(message)
+        institution_type = get_user_institution_type(user_id)
+        goodsChapter(message, institution_type)
     elif message.text == '🛒 Корзина' or message.text == '/cart':
         handle_view_cart(message)
     elif message.text.startswith('📝 Оформить'):
         handle_buy_button(message)
     elif message.text == '↩️ Назад':
-        goodsChapter(message)
+        institution_type = get_user_institution_type(user_id)
+        goodsChapter(message, institution_type)
     elif message.text == '↩️ Назад в меню' or message.text == '/main_menu':
         main_menu(message)
-    elif message.text == '🆘📚 БПН':
-        bpn(message)
-    elif message.text == '✏️📔 Лекции':
-        show_lectures_info(message)
-    elif message.text in ['🎓📚 Дипломная работа', '📘📝 Курсовая работа', '📊📢 Итоговый доклад', '🏆📑 Итоговый проект', '📄🔍 Научная статья', '🎥📊Презентация', '🗣️📑Доклад', '🛠️📖Практическая работа', '✨🛠️📖Уникальная практическая работа', '🗣️🎥📊Доклад + презентация', '📝🎉Сценарий для мероприятий']:
-        show_item_info(message)
+    elif message.text in ['Дипломная работа', 'Курсовая работа', 'Итоговый доклад', 'Итоговый проект', 'Научная статья', 'Презентация', 'Доклад', 'Практическая работа', 'Уникальная практическая работа', 'Доклад + презентация', 'Сценарий для мероприятий']:
+        institution_type = get_user_institution_type(message.from_user.id)
+        show_item_info(message, institution_type)
     else:
         bot.send_message(message.chat.id, answers[0])
 
@@ -52,34 +50,26 @@ def send_school_message(chat_id):
     bot.send_message(chat_id, "К сожалению, мы пока не предоставляем услуги для школ.", reply_markup=keyboard)
 
 
-@bot.message_handler(func=lambda message: message.text in ['Университет/Колледж', 'Школа', '↩️ Вернуться к выбору'])
-def choose_education_institution(message):
-    if message.text == '🏛️ Университет/Колледж':
-        main_menu(message)
-    elif message.text == '🏫 Школа':
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        keyboard.add(types.KeyboardButton("↩️ Вернуться к выбору"))
-        bot.send_message(message.chat.id, "К сожалению, мы пока не предоставляем услуги для школ.", reply_markup=keyboard)
-    elif message.text == '↩️ Вернуться к выбору':
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        keyboard.add(types.KeyboardButton("🏛️ Университет/Колледж"), types.KeyboardButton("🏫 Школа"))
-        bot.send_message(message.chat.id, "Выберите тип образовательного учреждения:", reply_markup=keyboard)
-
-
 # Отправляет приветственное сообщение и предлагает выбрать образовательное учреждение.
+@bot.message_handler(commands=['start'])
 def start(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     university_button = types.KeyboardButton('🏛️ Университет/Колледж')
     school_button = types.KeyboardButton('🏫 Школа')
     markup.add(university_button, school_button)
-    user_id = message.from_user.id
-    username = message.from_user.username
-    update_user_info(user_id, username)
     bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name}!\n'
                                       f'Вас приветствует компания FreeBies!\n'
-                                      f'Здесь ты можешь оформить заказ на наши услуги.',
-                     reply_markup=markup)
-    bot.send_message(message.chat.id, "Выберите ваше образовательное учреждение:", reply_markup=markup)
+                                      f'Здесь ты можешь оформить заказ на наши услуги.\n'
+                                      f'Выберите ваше образовательное учреждение:', reply_markup=markup)
+
+
+@bot.message_handler(func=lambda message: message.text in ['🏛️ Университет/Колледж', '🏫 Школа'])
+def choose_education_institution(message):
+    user_id = message.from_user.id
+    username = message.from_user.username
+    institution_type = 'university' if message.text == '🏛️ Университет/Колледж' else 'school'
+    update_user_info(user_id, username, institution_type)
+    main_menu(message)
 
 
 # Показывает главное меню бота с доступными опциями.
@@ -100,15 +90,17 @@ def main_menu(message):
 
 
 # Показывает список доступных услуг или товаров.
-@bot.message_handler(commands=['services'])
-def goodsChapter(message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    items = ['🎓📚 Дипломная работа', '📘📝 Курсовая работа', '📊📢 Итоговый доклад', '🏆📑 Итоговый проект', '📄🔍 Научная статья', '🆘📚 БПН', '✏️📔 Лекции', '🎥📊Презентация', '🗣️📑Доклад', '🛠️📖Практическая работа', '✨🛠️📖Уникальная практическая работа', '🗣️🎥📊Доклад + презентация', '📝🎉Сценарий для мероприятий']
-    buttons = [types.KeyboardButton(item) for item in items]
-    for button in buttons:
-        markup.add(button)
-    markup.add(types.KeyboardButton('↩️ Назад в меню'))
+def goodsChapter(message, institution_type=None):
+    if institution_type is None:
+        user_id = message.from_user.id
+        institution_type = get_user_institution_type(user_id)
 
+    services = get_services_by_institution_type(institution_type)
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    for service in services:
+        service_button = types.KeyboardButton(service['name'])
+        markup.add(service_button)
+    markup.add(types.KeyboardButton('↩️ Назад в меню'))
     bot.send_message(message.chat.id, 'Вот все товары, которые сейчас находятся в продаже:', reply_markup=markup)
 
 
@@ -162,10 +154,11 @@ def remove_emojis(text):
 
 
 # Показывает информацию о выбранной услуге или товаре.
-def show_item_info(message):
-    item_name = remove_emojis(message.text.split(':')[1]).strip() if ':' in message.text else remove_emojis(message.text).strip()
+def show_item_info(message, institution_type):
+    item_name = remove_emojis(message.text.split(':')[1]).strip() if ':' in message.text else remove_emojis(
+        message.text).strip()
+    item_params = get_item_params_by_name_and_type(item_name, institution_type)
 
-    item_params = get_item_params_by_name(item_name)
     if item_params:
         amount = item_params['amount']
         custom_description = item_params.get('custom_description', 'Описание отсутствует')
@@ -205,9 +198,10 @@ def ask_for_scenario_option(message, item_params, item_name):
 
 def process_scenario_selection(message, item_params, item_name):
     selection = message.text
+    institution_type = item_params.get('institution_type')
     if selection == '↩️ Назад':
         message.text = f"📝 Оформить: {item_name}"
-        show_item_info(message)
+        show_item_info(message, institution_type)
     elif selection == '1) Базовый сценарий':
         proceed_to_speed_up_option(message, item_params, item_name)
     elif selection == '2) Сценарий с презентацией':
@@ -294,14 +288,11 @@ def process_delivery_choice(message, item_params, item_id):
     if choice == 'да':
         item_params['courier_delivery'] = True
         item_params['amount'] += 500
-        # Переход к следующему шагу, например, запрос названия учебного заведения
         request_education_institution_name(message, item_params, item_id)
     elif choice == 'нет':
         item_params['courier_delivery'] = False
-        # Переход к следующему шагу
         request_education_institution_name(message, item_params, item_id)
     else:
-        # В случае некорректного ввода повторяем запрос
         msg = bot.send_message(message.chat.id, "Не понимаю ваш выбор. Пожалуйста, ответьте 'Да' или 'Нет'.")
         bot.register_next_step_handler(msg, process_delivery_choice, item_params, item_id)
 
@@ -376,7 +367,7 @@ def process_has_contents(message, item_params, item_id):
         msg = bot.send_message(message.chat.id, "Пожалуйста, введите содержание работы:", reply_markup=types.ReplyKeyboardRemove())
         bot.register_next_step_handler(msg, process_contents_input, item_params, item_id)
     elif choice == 'нет':
-        item_params['amount'] += 300  # Увеличиваем цену на 300 рублей
+        item_params['amount'] += 300
         item_params['has_contents'] = False
         msg = bot.send_message(message.chat.id, "Есть ли какие-то пожелания к работе?", reply_markup=types.ReplyKeyboardRemove())
         bot.register_next_step_handler(msg, process_project_requirements, item_params, item_id)
@@ -431,6 +422,16 @@ def process_custom_source(message, item_params, item_id):
 
 # Запрашивает у пользователя подтверждение заказа или возврат в меню
 def confirm_order_or_proceed(message, item_params, item_id):
+    ask_for_contact_info(message, item_params, item_id)
+
+
+def ask_for_contact_info(message, item_params, item_id):
+    msg = bot.send_message(message.chat.id, "Пожалуйста, укажите ваш дополнительный способ связи (например, телефон, email и т.д.):")
+    bot.register_next_step_handler(msg, process_contact_info_before_confirmation, item_params, item_id)
+
+
+def process_contact_info_before_confirmation(message, item_params, item_id):
+    item_params['contact_method'] = message.text
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     confirm_button = types.KeyboardButton('Подтвердить заказ')
     change_button = types.KeyboardButton('↩️ Назад в меню')
@@ -455,14 +456,16 @@ def final_confirmation(message, item_params, item_id):
         education_institution_name = item_params.get('education_institution_name', '')
         source_of_information = item_params.get('source_of_information', '')
         promo_code = item_params.get('promo_code', '')
+        contact_method = item_params.get('contact_method', '')
         project_description_file_id = item_params.get('project_description_file_id', None)
         file_name = item_params.get('file_name', None)
         file_size = item_params.get('file_size', None)
+        institution_type = get_user_institution_type(user_id)
 
         add_order(user_id, item_id, amount, description, delivery_selected, project_title, project_description,
                   project_requirements, speed_up, courier_delivery, education_institution_name,
-                  item_params.get('has_contents', False), item_params.get('contents', ''), source_of_information, promo_code,
-                  project_description_file_id, file_name, file_size)
+                  item_params.get('has_contents', False), item_params.get('contents', ''), source_of_information, promo_code, contact_method,
+                  institution_type, project_description_file_id, file_name, file_size)
 
         bot.send_message(message.chat.id, "Ваш заказ подтвержден и добавлен в корзину!", reply_markup=types.ReplyKeyboardRemove())
         handle_view_cart(message)
@@ -533,6 +536,7 @@ def handle_payment(call):
 
         message_to_admin = (
             f'{order["description"]} за {order["amount"]} рублей\n'
+            f'Вид учебного заведения: {order["institution_type"]}\n'
             f'Название учебного заведения: {order["education_institution_name"]}\n'
             f'Тема работы: {order["project_title"]}\n'
             f'Методические указания: {order["project_description"]}\n'
@@ -542,6 +546,7 @@ def handle_payment(call):
             f'Курьерская доставка: {"Да" if order["courier_delivery"] else "Нет"}\n'
             f'Время "оплаты": {payment_time}\n'
             f'ID заказчика: {order["user_id"]}\n'
+            f'Доп. способ связи: {order["contact_method"]}\n'
         )
 
         if order.get("promo_code"):
