@@ -136,6 +136,7 @@ def get_user_orders(user_id):
     return orders
 
 
+# Извлекает и возвращает детали заказа по его идентификатору из базы данных
 def get_order_details(order_id):
     conn = get_db_connection()
     order_details = {}

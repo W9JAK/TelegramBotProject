@@ -163,7 +163,7 @@ def remove_emojis(text):
 
 # Показывает информацию о выбранной услуге или товаре.
 def show_item_info(message):
-    item_name = remove_emojis(message.text).strip()
+    item_name = remove_emojis(message.text.split(':')[1]).strip() if ':' in message.text else remove_emojis(message.text).strip()
 
     item_params = get_item_params_by_name(item_name)
     if item_params:
@@ -181,18 +181,56 @@ def show_item_info(message):
 
 # Обрабатывает нажатие кнопки оформления заказа на услугу.
 def handle_buy_button(message):
-    item_id = message.text.split(':')[1].strip()
-    item_params = get_item_params_by_name(item_id)
+    item_name = remove_emojis(message.text.split(':')[1]).strip()
+    item_params = get_item_params_by_name(item_name)
     if item_params:
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        speed_up_question = f'Хотите ускорить выполнение работы до {item_params["speed_up_time"]} за дополнительную плату {item_params["speed_up_amount"]} рублей?'
-        yes_button = types.KeyboardButton('Да')
-        no_button = types.KeyboardButton('Нет')
-        markup.row(yes_button, no_button)
-        msg = bot.send_message(message.chat.id, speed_up_question, reply_markup=markup)
-        bot.register_next_step_handler(msg, process_speed_up_choice, item_params, item_id)
+        if item_name == "Сценарий для мероприятий":
+            ask_for_scenario_option(message, item_params, item_name)
+        else:
+            proceed_to_speed_up_option(message, item_params, item_name)
     else:
         bot.send_message(message.chat.id, "Товар не найден")
+
+
+def ask_for_scenario_option(message, item_params, item_name):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    options = ['Базовый сценарий', 'Сценарий с презентацией', 'Подробный сценарий']
+    for option in options:
+        markup.add(types.KeyboardButton(option))
+    markup.add(types.KeyboardButton('↩️ Назад'))
+    msg = bot.send_message(message.chat.id, "Выберите вариант сценария:", reply_markup=markup)
+    bot.register_next_step_handler(msg, process_scenario_selection, item_params, item_name)
+
+
+def process_scenario_selection(message, item_params, item_name):
+    selection = message.text
+    # Проверяем, была ли нажата кнопка "Назад"
+    if selection == '↩️ Назад':
+        # Повторно вызываем функцию показа информации об услуге
+        message.text = f"📝 Оформить: {item_name}"  # Формируем текст сообщения как при выборе услуги
+        show_item_info(message)
+    elif selection == 'Базовый сценарий':
+        proceed_to_speed_up_option(message, item_params, item_name)
+    elif selection == 'Сценарий с презентацией':
+        item_params['amount'] = 2500
+        proceed_to_speed_up_option(message, item_params, item_name)
+    elif selection == 'Подробный сценарий':
+        item_params['amount'] = 4000
+        proceed_to_speed_up_option(message, item_params, item_name)
+    else:
+        bot.send_message(message.chat.id, "Неизвестный выбор, пожалуйста, попробуйте снова.")
+        # Возвращаем пользователя к выбору варианта сценария, если был сделан некорректный выбор
+        ask_for_scenario_option(message, item_params, item_name)
+
+
+def proceed_to_speed_up_option(message, item_params, item_name):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    speed_up_question = f'Хотите ускорить выполнение работы до {item_params["speed_up_time"]} за дополнительную плату {item_params["speed_up_amount"]} рублей?'
+    yes_button = types.KeyboardButton('Да')
+    no_button = types.KeyboardButton('Нет')
+    markup.row(yes_button, no_button)
+    msg = bot.send_message(message.chat.id, speed_up_question, reply_markup=markup)
+    bot.register_next_step_handler(msg, process_speed_up_choice, item_params, item_name)
 
 
 # Создает клавиатуру для выбора ускоренного выполнения работы.
@@ -233,11 +271,16 @@ def process_speed_up_choice(message, item_params, item_id):
     if choice == 'да':
         item_params['speed_up'] = True
         item_params['amount'] += item_params['speed_up_amount']
+        ask_for_delivery_option(message, item_params, item_id)
     elif choice == 'нет':
         item_params['speed_up'] = False
+        ask_for_delivery_option(message, item_params, item_id)
     else:
-        bot.send_message(message.chat.id, "Выберите, пожалуйста, 'Да' или 'Нет'.")
-        return
+        msg = bot.send_message(message.chat.id, "Выберите, пожалуйста, 'Да' или 'Нет'.")
+        bot.register_next_step_handler(msg, process_speed_up_choice, item_params, item_id)
+
+
+def ask_for_delivery_option(message, item_params, item_id):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     courier_question = 'Хотите доставку курьером за дополнительную плату 500 рублей?'
     yes_button = types.KeyboardButton('Да')
@@ -250,14 +293,25 @@ def process_speed_up_choice(message, item_params, item_id):
 # Обрабатывает выбор пользователя по доставке курьером.
 def process_delivery_choice(message, item_params, item_id):
     choice = message.text.lower()
-    if choice in ['да', 'нет']:
-        item_params['courier_delivery'] = choice == 'да'
-        if item_params['courier_delivery']:
-            item_params['amount'] += 500
-        msg = bot.send_message(message.chat.id, "Напишите название вашего учебного заведения:", reply_markup=types.ReplyKeyboardRemove())
-        bot.register_next_step_handler(msg, process_education_institution_name, item_params, item_id)
+    if choice == 'да':
+        item_params['courier_delivery'] = True
+        item_params['amount'] += 500
+        # Переход к следующему шагу, например, запрос названия учебного заведения
+        request_education_institution_name(message, item_params, item_id)
+    elif choice == 'нет':
+        item_params['courier_delivery'] = False
+        # Переход к следующему шагу
+        request_education_institution_name(message, item_params, item_id)
     else:
-        bot.send_message(message.chat.id, "Выберите, пожалуйста, 'Да' или 'Нет'.")
+        # В случае некорректного ввода повторяем запрос
+        msg = bot.send_message(message.chat.id, "Выберите, пожалуйста, 'Да' или 'Нет'.")
+        bot.register_next_step_handler(msg, process_delivery_choice, item_params, item_id)
+
+
+# Запрашиваем название учебного заведения
+def request_education_institution_name(message, item_params, item_id):
+    msg = bot.send_message(message.chat.id, "Напишите название вашего учебного заведения:", reply_markup=types.ReplyKeyboardRemove())
+    bot.register_next_step_handler(msg, process_education_institution_name, item_params, item_id)
 
 
 # Вычисляет общую стоимость заказа с учетом дополнительных услуг.
