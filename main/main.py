@@ -200,8 +200,7 @@ def process_scenario_selection(message, item_params, item_name):
     selection = message.text
     institution_type = item_params.get('institution_type')
     if selection == '↩️ Назад':
-        message.text = f"📝 Оформить: {item_name}"
-        show_item_info(message, institution_type)
+        goodsChapter(message, institution_type)
     elif selection == '1) Базовый сценарий':
         proceed_to_speed_up_option(message, item_params, item_name)
     elif selection == '2) Сценарий с презентацией':
