@@ -173,9 +173,13 @@ def show_item_info(message, institution_type):
 
 
 # Обрабатывает нажатие кнопки оформления заказа на услугу.
+@bot.message_handler(func=lambda message: message.text.startswith('📝 Оформить'))
 def handle_buy_button(message):
+    user_id = message.from_user.id
+    institution_type = get_user_institution_type(user_id)
     item_name = remove_emojis(message.text.split(':')[1]).strip()
-    item_params = get_item_params_by_name(item_name)
+    item_params = get_item_params_by_name_and_type(item_name, institution_type)
+
     if item_params:
         if item_name == "Сценарий для мероприятий":
             ask_for_scenario_option(message, item_params, item_name)
