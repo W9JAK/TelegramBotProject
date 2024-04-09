@@ -9,41 +9,13 @@ def get_db_connection():
 
 
 # Извлекает параметры услуги по ее названию из базы данных.
-def get_item_params_by_name(name):
-    conn = get_db_connection()
-    item_params = {}
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                SELECT name, amount, description, custom_description, speed_up_amount, speed_up_time, additional_delivery_cost
-                FROM items
-                WHERE name = %s
-            """, (name,))
-            row = cursor.fetchone()
-            if row:
-                item_params = {
-                    'name': row[0],
-                    'amount': row[1],
-                    'description': row[2],
-                    'custom_description': row[3],
-                    'speed_up_amount': row[4],
-                    'speed_up_time': row[5],
-                    'additional_delivery_cost': row[6]
-                }
-    except Exception as e:
-        print(f"Ошибка при получении данных об услуге {name}: {e}")
-    finally:
-        conn.close()
-    return item_params
-
-
 def get_item_params_by_name_and_type(name, institution_type):
     conn = get_db_connection()
     item_params = {}
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT name, amount, description, custom_description, speed_up_amount, speed_up_time, additional_delivery_cost
+                SELECT name, amount, description, custom_description, speed_up_amount, speed_up_time, super_speed_up_amount, super_speed_up_time
                 FROM items
                 WHERE name = %s AND institution_type = %s
             """, (name, institution_type))
@@ -56,7 +28,8 @@ def get_item_params_by_name_and_type(name, institution_type):
                     'custom_description': row[3],
                     'speed_up_amount': row[4],
                     'speed_up_time': row[5],
-                    'additional_delivery_cost': row[6]
+                    'super_speed_up_amount': row[6],
+                    'super_speed_up_time': row[7]
                 }
     except Exception as e:
         print(f"Ошибка при получении данных об услуге {name} для {institution_type}: {e}")
@@ -135,14 +108,14 @@ def get_services_by_institution_type(institution_type):
 
 
 # Добавляет заказ в базу данных со всеми указанными параметрами.
-def add_order(user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, project_description_file_id=None, file_name=None, file_size=None):
-    conn = psycopg2.connect(DATABASE_URL)
+def add_order(user_id, item_id, amount, description, project_title, project_description, project_requirements, speed_up, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, subscription_discount_applied=False, project_description_file_id=None, file_name=None, file_size=None):
+    conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                INSERT INTO orders (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, project_description_file_id, file_name, file_size)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, project_description_file_id, file_name, file_size))
+                INSERT INTO orders (user_id, item_id, amount, description, project_title, project_description, project_requirements, speed_up, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, subscription_discount_applied, project_description_file_id, file_name, file_size)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (user_id, item_id, amount, description, project_title, project_description, project_requirements, speed_up, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, subscription_discount_applied, project_description_file_id, file_name, file_size))
             conn.commit()
     except Exception as e:
         print("Ошибка при добавлении заказа:", e)
@@ -159,14 +132,33 @@ def delete_order(order_id):
     conn.close()
 
 
+# Записывает информацию о виде оплаты
+def update_order_with_partial_payment_info(order_id, is_partial_payment):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            partial_payment_flag = 'TRUE' if is_partial_payment else 'FALSE'
+            cursor.execute("""
+                UPDATE orders
+                SET is_partial_payment = %s
+                WHERE order_id = %s
+            """, (partial_payment_flag, order_id))
+            conn.commit()
+    except Exception as e:
+        print(f"Ошибка при обновлении информации о заказе {order_id}: {e}")
+        conn.rollback()
+    finally:
+        conn.close()
+
+
 # Возвращает список заказов конкретного пользователя.
 def get_user_orders(user_id):
-    conn = psycopg2.connect(DATABASE_URL)
+    conn = get_db_connection()
     orders = []
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT order_id, user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code, project_description_file_id, file_name, file_size
+                SELECT order_id, user_id, item_id, amount, description, project_title, project_description, project_requirements, speed_up, education_institution_name, has_contents, contents, source_of_information, promo_code, project_description_file_id, file_name, file_size, subscription_discount_applied, is_partial_payment
                 FROM orders
                 WHERE user_id = %s
             """, (user_id,))
@@ -176,20 +168,20 @@ def get_user_orders(user_id):
                 'item_id': row[2],
                 'amount': row[3],
                 'description': row[4],
-                'delivery_selected': row[5],
-                'project_title': row[6],
-                'project_description': row[7],
-                'project_requirements': row[8],
-                'speed_up': row[9],
-                'courier_delivery': row[10],
-                'education_institution_name': row[11],
-                'has_contents': row[12],
-                'contents': row[13],
-                'source_of_information': row[14],
-                'promo_code': row[15],
-                'project_description_file_id': row[16],
-                'file_name': row[17],
-                'file_size': row[18]
+                'project_title': row[5],
+                'project_description': row[6],
+                'project_requirements': row[7],
+                'speed_up': row[8],
+                'education_institution_name': row[9],
+                'has_contents': row[10],
+                'contents': row[11],
+                'source_of_information': row[12],
+                'promo_code': row[13],
+                'project_description_file_id': row[14],
+                'file_name': row[15],
+                'file_size': row[16],
+                'subscription_discount_applied': row[17],
+                'is_partial_payment': row[18]
             } for row in cursor.fetchall()]
     except Exception as e:
         print("Ошибка при получении заказов пользователя:", e)
@@ -205,7 +197,7 @@ def get_order_details(order_id):
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT order_id, user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, project_description_file_id, file_name, file_size
+                SELECT order_id, user_id, item_id, amount, description, project_title, project_description, project_requirements, speed_up, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, project_description_file_id, file_name, file_size, subscription_discount_applied, is_partial_payment
                 FROM orders
                 WHERE order_id = %s
             """, (order_id,))
@@ -217,22 +209,22 @@ def get_order_details(order_id):
                     'item_id': row[2],
                     'amount': row[3],
                     'description': row[4],
-                    'delivery_selected': row[5],
-                    'project_title': row[6],
-                    'project_description': row[7],
-                    'project_requirements': row[8],
-                    'speed_up': row[9],
-                    'courier_delivery': row[10],
-                    'education_institution_name': row[11],
-                    'has_contents': row[12],
-                    'contents': row[13],
-                    'source_of_information': row[14],
-                    'promo_code': row[15],
-                    'contact_method': row[16],
-                    'institution_type': row[17],
-                    'project_description_file_id': row[18],
-                    'file_name': row[19],
-                    'file_size': row[20]
+                    'project_title': row[5],
+                    'project_description': row[6],
+                    'project_requirements': row[7],
+                    'speed_up': row[8],
+                    'education_institution_name': row[9],
+                    'has_contents': row[10],
+                    'contents': row[11],
+                    'source_of_information': row[12],
+                    'promo_code': row[13],
+                    'contact_method': row[14],
+                    'institution_type': row[15],
+                    'project_description_file_id': row[16],
+                    'file_name': row[17],
+                    'file_size': row[18],
+                    'subscription_discount_applied': row[19],
+                    'is_partial_payment': row[20]
                 }
     except Exception as e:
         print(f"Ошибка при получении деталей заказа {order_id}:", e)

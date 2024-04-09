@@ -1,23 +1,16 @@
-from multiprocessing import Process
-from main import start_bot
-import logging
+from threading import Thread
+import main
 
-logger = logging.getLogger(__name__)
+def run_bot():
+    main.bot.polling(none_stop=True)
+
+def run_waitress_server():
+    from serve import serve, app
+    serve(app, host='0.0.0.0', port=8080)
 
 
-def run_telegram_bot():
-    start_bot()
+if __name__ == "__main__":
+    bot_thread = Thread(target=run_bot)
+    bot_thread.start()
 
-
-if __name__ == '__main__':
-    logger.info("starting bot")
-    print("starting bot")
-    bot_process = Process(target=run_telegram_bot)
-
-    bot_process.start()
-
-    print("joining hinia")
-
-    bot_process.join()
-
-    print("bot started")
+    run_waitress_server()

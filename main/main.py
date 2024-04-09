@@ -1,11 +1,17 @@
 from telebot import TeleBot, types
-from config import my_token, ADMIN_CHAT_ID_1, ADMIN_CHAT_ID_2
-from datetime import datetime
+from config import my_token
 import re
-from db import get_item_params_by_name, update_user_info, get_user_username, add_order, delete_order, get_user_orders, get_order_details, get_user_institution_type, get_services_by_institution_type, get_item_params_by_name_and_type
+from db import update_user_info, add_order, delete_order, get_user_orders, get_user_institution_type, get_services_by_institution_type, get_item_params_by_name_and_type, get_order_details, update_order_with_partial_payment_info
+from yookassa import Payment
+import uuid
+from decimal import Decimal
+import random
 
 
 bot = TeleBot(my_token)
+
+
+user_data = {}
 
 
 answers = ['Я не понял, что ты хочешь сказать.', 'Извини, я тебя не понимаю.', 'Я не знаю такой команды.', 'Мой разработчик не говорил, что отвечать в такой ситуации... >_<']
@@ -39,7 +45,7 @@ def handle_messages(message):
         institution_type = get_user_institution_type(message.from_user.id)
         show_item_info(message, institution_type)
     else:
-        bot.send_message(message.chat.id, answers[0])
+        bot.send_message(message.chat.id, random.choice(answers))
 
 
 # Функция для отправки сообщения о том, что услуги для школ не предоставляются
@@ -63,6 +69,7 @@ def start(message):
                                       f'Выберите ваше образовательное учреждение:', reply_markup=markup)
 
 
+# Выбор между видом учебных заведений
 @bot.message_handler(func=lambda message: message.text in ['🏛️ Университет/Колледж', '🏫 Школа'])
 def choose_education_institution(message):
     user_id = message.from_user.id
@@ -116,7 +123,7 @@ def handle_contact_button(message):
 # Создает инлайн-клавиатуру с вариантами контактов.
 def create_contact_options_markup():
     markup = types.InlineKeyboardMarkup()
-    responsible_button = types.InlineKeyboardButton("Связаться с ответственным по заказам", url="https://t.me/gelya052004")
+    responsible_button = types.InlineKeyboardButton("Связаться с ответственным по заказам", url="https://t.me/PaulWilliams29")
     markup.row(responsible_button)
 
     return markup
@@ -189,6 +196,7 @@ def handle_buy_button(message):
         bot.send_message(message.chat.id, "Товар не найден")
 
 
+# Добавление кнопок с видами сценариев
 def ask_for_scenario_option(message, item_params, item_name):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     options = ['1) Базовый сценарий', '2) Сценарий с презентацией', '3) Подробный сценарий']
@@ -200,6 +208,7 @@ def ask_for_scenario_option(message, item_params, item_name):
     bot.register_next_step_handler(msg, process_scenario_selection, item_params, item_name)
 
 
+# Изменение цены в зависимости от вида сценария
 def process_scenario_selection(message, item_params, item_name):
     selection = message.text
     institution_type = item_params.get('institution_type')
@@ -218,86 +227,47 @@ def process_scenario_selection(message, item_params, item_name):
         ask_for_scenario_option(message, item_params, item_name)
 
 
+# Создает клавиатуру для выбора ускоренного выполнения работы.
 def proceed_to_speed_up_option(message, item_params, item_name):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    speed_up_question = f'Хотите ускорить выполнение работы до {item_params["speed_up_time"]} за дополнительную плату {item_params["speed_up_amount"]} рублей?'
-    yes_button = types.KeyboardButton('Да')
-    no_button = types.KeyboardButton('Нет')
-    markup.row(yes_button, no_button)
+    acceleration_button = types.KeyboardButton('Ускорение')
+    skip_button = types.KeyboardButton('Пропустить')
+
+    if item_name in ['Курсовая работа', 'Дипломная работа', 'Итоговый проект']:
+        super_acceleration_button = types.KeyboardButton('Сверхускорение')
+        markup.add(super_acceleration_button)
+        speed_up_question = (f"Хотите ускорить выполнение работы за дополнительную плату?\n"
+                             f"1) Ускорение до {item_params['speed_up_time']} за {item_params['speed_up_amount']} рублей\n"
+                             f"2) Сверхускорение до {item_params['super_speed_up_time']} за {item_params['super_speed_up_amount']} рублей")
+    else:
+        speed_up_question = (f"Хотите ускорить выполнение работы до {item_params['speed_up_time']} "
+                             f"за дополнительную плату {item_params['speed_up_amount']} рублей?")
+
+    markup.add(acceleration_button)
+    markup.add(skip_button)
+
     msg = bot.send_message(message.chat.id, speed_up_question, reply_markup=markup)
     bot.register_next_step_handler(msg, process_speed_up_choice, item_params, item_name)
 
 
-# Создает клавиатуру для выбора ускоренного выполнения работы.
-def create_speed_up_markup(item_params, message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    yes_button = types.KeyboardButton('Да')
-    no_button = types.KeyboardButton('Нет')
-
-    markup.row(yes_button, no_button)
-    markup.row(types.KeyboardButton('↩️ Назад'))
-
-    item_id = item_params.get('description', '')
-    bot.register_next_step_handler(message, process_speed_up_choice, item_params, item_id)
-    return markup
-
-
-# Создает клавиатуру для выбора доставки курьером.
-def create_delivery_markup(item_params, message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    yes_button = types.KeyboardButton('Да')
-    no_button = types.KeyboardButton('Нет')
-
-    markup.row(yes_button, no_button)
-    markup.row(types.KeyboardButton('↩️ Назад'))
-
-    if 'speed_up' in item_params and item_params['speed_up']:
-        item_id = item_params.get('description', '')
-        bot.register_next_step_handler(message, process_delivery_choice, item_params, item_id)
-    else:
-        process_delivery_choice(message, item_params, None)
-
-    return markup
-
-
 # Обрабатывает выбор пользователя по ускоренному выполнению работы.
-def process_speed_up_choice(message, item_params, item_id):
+def process_speed_up_choice(message, item_params, item_name):
     choice = message.text.lower()
-    if choice == 'да':
+    if choice == 'ускорение':
         item_params['speed_up'] = True
         item_params['amount'] += item_params['speed_up_amount']
-        ask_for_delivery_option(message, item_params, item_id)
-    elif choice == 'нет':
+        request_education_institution_name(message, item_params, item_name)
+    elif choice == 'сверхускорение':
+        item_params['speed_up'] = True
+        item_params['amount'] += item_params['super_speed_up_amount']
+        item_params['speed_up_time'] = item_params['super_speed_up_time']
+        request_education_institution_name(message, item_params, item_name)
+    elif choice == 'пропустить':
         item_params['speed_up'] = False
-        ask_for_delivery_option(message, item_params, item_id)
+        request_education_institution_name(message, item_params, item_name)
     else:
-        msg = bot.send_message(message.chat.id, "Не понимаю ваш выбор. Пожалуйста, ответьте 'Да' или 'Нет'.")
-        bot.register_next_step_handler(msg, process_speed_up_choice, item_params, item_id)
-
-
-def ask_for_delivery_option(message, item_params, item_id):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    courier_question = 'Хотите доставку курьером за дополнительную плату 500 рублей?'
-    yes_button = types.KeyboardButton('Да')
-    no_button = types.KeyboardButton('Нет')
-    markup.row(yes_button, no_button)
-    msg = bot.send_message(message.chat.id, courier_question, reply_markup=markup)
-    bot.register_next_step_handler(msg, process_delivery_choice, item_params, item_id)
-
-
-# Обрабатывает выбор пользователя по доставке курьером.
-def process_delivery_choice(message, item_params, item_id):
-    choice = message.text.lower()
-    if choice == 'да':
-        item_params['courier_delivery'] = True
-        item_params['amount'] += 500
-        request_education_institution_name(message, item_params, item_id)
-    elif choice == 'нет':
-        item_params['courier_delivery'] = False
-        request_education_institution_name(message, item_params, item_id)
-    else:
-        msg = bot.send_message(message.chat.id, "Не понимаю ваш выбор. Пожалуйста, ответьте 'Да' или 'Нет'.")
-        bot.register_next_step_handler(msg, process_delivery_choice, item_params, item_id)
+        msg = bot.send_message(message.chat.id, "Не понимаю ваш выбор. Пожалуйста, выберите один из предложенных вариантов.")
+        bot.register_next_step_handler(msg, process_speed_up_choice, item_params, item_name)
 
 
 # Запрашиваем название учебного заведения
@@ -317,10 +287,8 @@ def calculate_total_amount(item_params):
     speed_up_selected = item_params.get('speed_up_selected', False)
     speed_up_cost = speed_up_amount if speed_up_selected else 0
 
-    courier_delivery_selected = item_params.get('courier_delivery_selected', False)
-    additional_delivery_cost = 500 if courier_delivery_selected else 0
+    total_amount = item_params.get('amount', 0) + speed_up_cost
 
-    total_amount = item_params.get('amount', 0) + speed_up_cost + additional_delivery_cost
     return total_amount
 
 
@@ -334,7 +302,7 @@ def process_education_institution_name(message, item_params, item_id):
 # Обрабатывает ввод темы работы.
 def process_project_title(message, item_params, item_id):
     item_params['project_title'] = message.text
-    msg = bot.send_message(message.chat.id, "Пришлите методические указания или опишите их:", reply_markup=types.ReplyKeyboardRemove())
+    msg = bot.send_message(message.chat.id, "Пришлите файл с методическими указаниями или опишите их:", reply_markup=types.ReplyKeyboardRemove())
     bot.register_next_step_handler(msg, process_project_description, item_params, item_id)
 
 
@@ -349,9 +317,7 @@ def process_project_description(message, item_params, item_id):
         item_params['project_description'] = message.text
         item_params['project_description_file_id'] = None
 
-    # Проверяем, является ли тип проекта тем, для которого нужно запросить содержание работы
     if item_params.get('name') in ['Итоговый проект', 'Итоговый доклад', 'Курсовая работа', 'Дипломная работа']:
-        # Запрашиваем наличие содержания работы
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         yes_button = types.KeyboardButton('Да')
         no_button = types.KeyboardButton('Нет')
@@ -429,12 +395,74 @@ def confirm_order_or_proceed(message, item_params, item_id):
 
 
 def ask_for_contact_info(message, item_params, item_id):
-    msg = bot.send_message(message.chat.id, "Пожалуйста, укажите ваш дополнительный способ связи (например, телефон, email и т.д.):")
-    bot.register_next_step_handler(msg, process_contact_info_before_confirmation, item_params, item_id)
+    msg = bot.send_message(message.chat.id,
+                           "Пожалуйста, укажите ваш дополнительный способ связи (например, телефон, email и т.д.):")
+    bot.register_next_step_handler(msg, process_contact_method, item_params, item_id)
 
 
-def process_contact_info_before_confirmation(message, item_params, item_id):
-    item_params['contact_method'] = message.text
+def process_contact_method(message, item_params, item_id):
+    contact_method = message.text
+    item_params['contact_method'] = contact_method
+    ask_for_subscription(message, item_params, item_id)
+
+
+def ask_for_subscription(message, item_params, item_id):
+    user_id = message.chat.id
+    user_data[user_id] = {'item_params': item_params, 'item_id': item_id}
+
+    markup = types.InlineKeyboardMarkup()
+    group_button = types.InlineKeyboardButton("Группа", url="https://t.me/SHg8w")
+    subscribe_button = types.InlineKeyboardButton("Подписался", callback_data="check_subscription")
+    skip_button = types.InlineKeyboardButton("Пропустить", callback_data="skip_subscription")
+    markup.add(group_button, subscribe_button, skip_button)
+
+    bot.send_message(user_id, "Подпишитесь на наш канал, чтобы быть в курсе последних новостей и акций и получить СКИДКУ на заказ в 5%!", reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda call: call.data in ["check_subscription", "skip_subscription"])
+def handle_subscription_callback(call):
+    user_id = call.message.chat.id
+
+    if call.data == "check_subscription":
+        check_user_subscription(call)
+    elif call.data == "skip_subscription":
+        bot.answer_callback_query(call.id, "Вы можете подписаться позже.")
+        proceed_after_subscription_check(call.message, user_id)
+
+
+def check_user_subscription(call):
+    user_id = call.from_user.id
+    chat_id = "@SHg8w"
+
+    try:
+        response = bot.get_chat_member(chat_id, user_id)
+        if response.status not in ["left", "kicked"]:
+            if user_id in user_data:
+                user_data[user_id]['item_params']['subscription_discount_applied'] = True
+
+                current_amount = user_data[user_id]['item_params']['amount']
+                discounted_amount = current_amount * Decimal('0.95')
+                user_data[user_id]['item_params']['amount'] = discounted_amount
+
+                bot.send_message(call.message.chat.id, "Спасибо за подписку! Вам применена скидка 5%.")
+                proceed_after_subscription_check(call.message, user_id)
+        else:
+            bot.send_message(call.message.chat.id, "Кажется, вы еще не подписались. Пожалуйста, подпишитесь на канал.")
+    except Exception as e:
+        print(f"Error checking subscription: {e}")
+        bot.answer_callback_query(call.id, "Произошла ошибка при проверке подписки.", show_alert=True)
+
+
+def proceed_after_subscription_check(message, user_id):
+    if user_id in user_data:
+        item_params = user_data[user_id]['item_params']
+        item_id = user_data[user_id]['item_id']
+        del user_data[user_id]
+
+        confirm_order(message=message, item_params=item_params, item_id=item_id)
+
+
+def confirm_order(message, item_params, item_id):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     confirm_button = types.KeyboardButton('Подтвердить заказ')
     change_button = types.KeyboardButton('↩️ Назад в меню')
@@ -450,12 +478,10 @@ def final_confirmation(message, item_params, item_id):
         user_id = message.from_user.id
         amount = item_params['amount']
         description = item_params['description']
-        delivery_selected = item_params.get('courier_delivery', False)
         project_title = item_params.get('project_title', '')
         project_description = item_params.get('project_description', '')
         project_requirements = item_params.get('project_requirements', '')
         speed_up = item_params.get('speed_up', False)
-        courier_delivery = item_params.get('courier_delivery', False)
         education_institution_name = item_params.get('education_institution_name', '')
         source_of_information = item_params.get('source_of_information', '')
         promo_code = item_params.get('promo_code', '')
@@ -464,11 +490,12 @@ def final_confirmation(message, item_params, item_id):
         file_name = item_params.get('file_name', None)
         file_size = item_params.get('file_size', None)
         institution_type = get_user_institution_type(user_id)
+        subscription_discount_applied = item_params.get('subscription_discount_applied', False)
 
-        add_order(user_id, item_id, amount, description, delivery_selected, project_title, project_description,
-                  project_requirements, speed_up, courier_delivery, education_institution_name,
+        add_order(user_id, item_id, amount, description, project_title, project_description,
+                  project_requirements, speed_up, education_institution_name,
                   item_params.get('has_contents', False), item_params.get('contents', ''), source_of_information, promo_code, contact_method,
-                  institution_type, project_description_file_id, file_name, file_size)
+                  institution_type, subscription_discount_applied, project_description_file_id, file_name, file_size)
 
         bot.send_message(message.chat.id, "Ваш заказ подтвержден и добавлен в корзину!", reply_markup=types.ReplyKeyboardRemove())
         handle_view_cart(message)
@@ -495,14 +522,17 @@ def handle_view_cart(message):
     orders = get_user_orders(user_id)
     if orders:
         for order in orders:
-            order_details = f'{order["description"]} за {order["amount"]} рублей\n' \
-                            f'Название учебного заведения: {order["education_institution_name"]}\n' \
-                            f'Тема работы: {order["project_title"]}\n' \
-                            f'Методические указания: {order["project_description"]}\n' \
-                            f'Содержание: {order.get("contents", "Не указано")}\n' \
-                            f'Пожелания к работе: {order["project_requirements"]}\n' \
-                            f'Ускоренное выполнение: {"Да" if order["speed_up"] else "Нет"}\n' \
-                            f'Курьерская доставка: {"Да" if order["courier_delivery"] else "Нет"}'
+            content_line = f'Содержание: {order["contents"]}\n' if order.get("contents") else ""
+
+            order_details = (
+                f'{order["description"]} за {order["amount"]} рублей\n'
+                f'Ускоренное выполнение: {"Да" if order["speed_up"] else "Нет"}\n'
+                f'Название учебного заведения: {order["education_institution_name"]}\n'
+                f'Тема работы: {order["project_title"]}\n'
+                f'{content_line}'
+                f'Пожелания к работе: {order["project_requirements"]}\n'
+                f'Методические указания: {order["project_description"]}\n'
+            )
 
             markup = types.InlineKeyboardMarkup()
             pay_button = types.InlineKeyboardButton(text="Оплатить", callback_data=f"pay_{order['order_id']}")
@@ -515,6 +545,49 @@ def handle_view_cart(message):
     else:
         bot.send_message(message.chat.id, "Ваша корзина пуста.")
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith('pay_'))
+def handle_payment_option(call):
+    order_id = call.data.split('_')[1]
+    ask_payment_method(call.message, order_id)
+
+def ask_payment_method(message, order_id):
+    markup = types.InlineKeyboardMarkup()
+    full_payment_button = types.InlineKeyboardButton('Полностью', callback_data=f'full_{order_id}')
+    partial_payment_button = types.InlineKeyboardButton('Частично', callback_data=f'partial_{order_id}')
+
+    markup.add(full_payment_button, partial_payment_button)
+
+    bot.send_message(message.chat.id, "Вы можете оплатить полную стоимость работы, либо первую половину сейчас, а вторую после получение работы!", reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('full_') or call.data.startswith('partial_'))
+def process_payment_method(call):
+    order_id = call.data.split('_')[1]
+    order = get_order_details(order_id)
+    amount = order['amount']
+
+    payment_description = "Оплата заказа"
+    is_partial_payment = False
+
+    if call.data.startswith('full_'):
+        payment_description = "Полная оплата заказа"
+    elif call.data.startswith('partial_'):
+        amount /= 2
+        payment_description = "Частичная оплата заказа"
+        is_partial_payment = True
+
+    update_order_with_partial_payment_info(order_id, is_partial_payment)
+
+    payment_url = create_payment(amount, order['description'], order_id)
+
+    markup = types.InlineKeyboardMarkup()
+    pay_button = types.InlineKeyboardButton(text="Перейти к оплате", url=payment_url)
+    markup.add(pay_button)
+
+    bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                          text=f"{payment_description}. Нажмите на кнопку для оплаты:",
+                          reply_markup=markup)
+
 
 # Обрабатывает callback-запрос, связанный с возвращением в главное меню
 @bot.callback_query_handler(func=lambda call: call.data == 'back_to_menu')
@@ -523,67 +596,26 @@ def callback_back_to_menu(call):
     main_menu(call.message)
 
 
-admin_1_services = ['Дипломная работа', 'Курсовая работа', 'Итоговый проект', 'Научная статья']
-admin_2_services = ['Итоговый доклад', 'Практическая работа', 'Уникальная практическая работа', 'Презентация', 'Доклад', 'Доклад + презентация', 'Сценарий для мероприятий']
-
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith('pay_'))
-def handle_payment(call):
-    order_id = call.data.split('_')[1]
-    order = get_order_details(order_id)
-    chat_id = call.message.chat.id
-    if order:
-        user_username = get_user_username(order['user_id'])
-        payment_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        admin_chat_id = ADMIN_CHAT_ID_1 if order["description"] in admin_1_services else ADMIN_CHAT_ID_2
-
-        message_to_admin = (
-            f'{order["description"]} за {order["amount"]} рублей\n'
-            f'Вид учебного заведения: {order["institution_type"]}\n'
-            f'Название учебного заведения: {order["education_institution_name"]}\n'
-            f'Тема работы: {order["project_title"]}\n'
-            f'Методические указания: {order["project_description"]}\n'
-            f'Содержание: {order.get("contents", "Не указано")}\n'
-            f'Пожелания к работе: {order["project_requirements"]}\n'
-            f'Ускоренное выполнение: {"Да" if order["speed_up"] else "Нет"}\n'
-            f'Курьерская доставка: {"Да" if order["courier_delivery"] else "Нет"}\n'
-            f'Время "оплаты": {payment_time}\n'
-            f'ID заказчика: {order["user_id"]}\n'
-            f'Доп. способ связи: {order["contact_method"]}\n'
-        )
-
-        if order.get("promo_code"):
-            message_to_admin += f'Промокод: {order["promo_code"]}\n'
-        else:
-            message_to_admin += f'Откуда узнали: {order.get("source_of_information", "Не указано")}\n'
-
-        if user_username:
-            message_to_admin += f'Заказчик: @{user_username}\n'
-        else:
-            message_to_admin += 'Информация о заказчике недоступна.\n'
-
-        bot.send_message(admin_chat_id, message_to_admin)
-
-        if order.get("project_description_file_id"):
-            file_id = order["project_description_file_id"]
-            try:
-                bot.send_document(admin_chat_id, file_id, caption="Методические указания к заказу.")
-            except Exception as e:
-                print(f"Ошибка при отправке файла: {e}")
-                bot.send_message(admin_chat_id, "Ошибка при отправке файла методических указаний.")
-        else:
-            bot.answer_callback_query(call.id, "Файл методических указаний не прикреплен к заказу.")
-
-        user_message = "Ваш заказ передан на рассмотрение! C вами свяжется администратор для подтверждения заказа (с 8:00 до 20:00)."
-        bot.send_message(chat_id, user_message)
-    else:
-        bot.answer_callback_query(call.id, "Ошибка: заказ не найден.")
+def create_payment(amount, description, order_id):
+    return_url = 'https://your-website.com/success-page'
+    payment = Payment.create({
+        "amount": {
+            "value": str(amount),
+            "currency": "RUB"
+        },
+        "confirmation": {
+            "type": "redirect",
+            "return_url": f"{return_url}?order_id={order_id}"
+        },
+        "description": description,
+        "capture": True,
+        "metadata": {
+            "order_id": order_id
+        }
+    }, uuid.uuid4())
+    return payment.confirmation.confirmation_url
 
 
 # Запускает бота и обрабатывает входящие сообщения в бесконечном цикле.
 def start_bot():
     bot.polling(none_stop=True)
-
-
-if __name__ == '__main__':
-    start_bot()

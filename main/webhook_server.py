@@ -75,3 +75,10 @@ def yookassa_webhook():
             print(f"Ошибка при отправке сообщения пользователю: {e}")
 
     return jsonify({'status': 'success'})
+
+
+@app.route('/test', methods=['GET'])
+def test_server():
+    return jsonify({'status': 'success', 'message': 'Ура, победа'}), 200
+
+
