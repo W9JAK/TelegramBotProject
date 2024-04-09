@@ -1,54 +1,18 @@
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify
 from datetime import datetime
-from main import bot, get_db_connection, get_user_username
-from config import GROUP_CHAT_ID
+from main import bot
+from config import CHANEL_CHAT_ID
+from db import get_order_details, get_user_username
 
 
 app = Flask(__name__)
-
-
-# Извлекает и возвращает детали заказа по его идентификатору из базы данных
-def get_order_details(order_id):
-    conn = get_db_connection()
-    order_details = {}
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                SELECT order_id, user_id, item_id, amount, description, delivery_selected, project_title, project_description, project_requirements, speed_up, courier_delivery, education_institution_name, has_contents, contents, source_of_information, promo_code 
-                FROM orders
-                WHERE order_id = %s
-            """, (order_id,))
-            row = cursor.fetchone()
-            if row:
-                order_details = {
-                    'order_id': row[0],
-                    'user_id': row[1],
-                    'item_id': row[2],
-                    'amount': row[3],
-                    'description': row[4],
-                    'delivery_selected': row[5],
-                    'project_title': row[6],
-                    'project_description': row[7],
-                    'project_requirements': row[8],
-                    'speed_up': row[9],
-                    'courier_delivery': row[10],
-                    'education_institution_name': row[11],
-                    'has_contents': row[12],
-                    'contents': row[13],
-                    'source_of_information': row[14],
-                    'promo_code': row[15]
-                }
-    except Exception as e:
-        print(f"Ошибка при получении деталей заказа {order_id}:", e)
-    finally:
-        conn.close()
-    return order_details
 
 
 # Обрабатывает вебхук от YooKassa для подтверждения оплаты заказа
 @app.route('/webhook/yookassa', methods=['POST'])
 def yookassa_webhook():
     data = request.json
+    print("Received webhook data:", data)
     if data.get('event') == 'payment.succeeded':
         order_id = data['object']['metadata'].get('order_id')
         if not order_id:
@@ -60,62 +24,54 @@ def yookassa_webhook():
             print(f"Информация о заказе с ID {order_id} не найдена.")
             return jsonify({'status': 'error', 'message': 'order details not found'}), 404
 
-        user_username = get_user_username(order['user_id'])  # Получаем username пользователя
-        payment_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Примерное время оплаты
+        user_id = order['user_id']
+        user_username = get_user_username(user_id)
+        payment_time = datetime.now().strftime('%H:%M:%S %Y-%m-%d')
+        content_line = f'Содержание: {order["contents"]}\n' if order.get("contents") else ""
+        payment_type = "Частичная оплата" if order.get("is_partial_payment") else "Полная оплата"
 
-        message = (
+        message_to_admin = (
             f'{order["description"]} за {order["amount"]} рублей\n'
+            f'Ускоренное выполнение: {"Да" if order["speed_up"] else "Нет"}\n'
+            f'Вид учебного заведения: {order["institution_type"]}\n'
             f'Название учебного заведения: {order["education_institution_name"]}\n'
             f'Тема работы: {order["project_title"]}\n'
             f'Методические указания: {order["project_description"]}\n'
-            f'Содержание: {order.get("contents", "Не указано")}\n'
+            f'{content_line}'
             f'Пожелания к работе: {order["project_requirements"]}\n'
-            f'Ускоренное выполнение: {"Да" if order["speed_up"] else "Нет"}\n'
-            f'Курьерская доставка: {"Да" if order["courier_delivery"] else "Нет"}\n'
             f'Время оплаты: {payment_time}\n'
             f'ID заказчика: {order["user_id"]}\n'
+            f'Доп. способ связи: {order["contact_method"]}\n'
+            f'Оплата: {payment_type}\n'
         )
 
         if order.get("promo_code"):
-            message += f'Промокод: {order["promo_code"]}\n'
+            message_to_admin += f'Промокод: {order["promo_code"]}\n'
         else:
-            message += f'Откуда узнали: {order.get("source_of_information", "Не указано")}\n'
+            message_to_admin += f'Откуда узнали: {order.get("source_of_information", "Не указано")}\n'
 
         if user_username:
-            message += f'Заказчик: @{user_username}\n'
+            message_to_admin += f'Заказчик: @{user_username}\n'
         else:
-            message += 'Информация о заказчике недоступна.\n'
+            message_to_admin += f'Информация о аккаунте тг заказчика недоступна.\n'
 
-        with open("orders_log.txt", "a") as file:
-            file.write(f"{message}\r\n")
+        bot.send_message(CHANEL_CHAT_ID, message_to_admin)
 
-        bot.send_message(GROUP_CHAT_ID, message)
+        if order.get("project_description_file_id"):
+            file_id = order["project_description_file_id"]
+            try:
+                bot.send_document(CHANEL_CHAT_ID, file_id, caption="Методические указания к заказу.")
+            except Exception as e:
+                print(f"Ошибка при отправке файла: {e}")
+                bot.send_message(CHANEL_CHAT_ID, "Ошибка при отправке файла методических указаний.")
+        else:
+            bot.send_message(CHANEL_CHAT_ID, "Файл методических указаний не прикреплен к заказу.")
+
+        user_message = "Ваш заказ был успешно оплачен и взят в работу. Мы сообщим вам о ходе выполнения. Спасибо за доверие!"
+
+        try:
+            bot.send_message(user_id, user_message)
+        except Exception as e:
+            print(f"Ошибка при отправке сообщения пользователю: {e}")
 
     return jsonify({'status': 'success'})
-
-
-@app.route('/orders')
-def show_orders():
-    try:
-        with open("orders_log.txt", "r", encoding="windows-1251") as file:
-            orders_data = file.read()
-    except FileNotFoundError:
-        orders_data = "Файл с данными о заказах не найден."
-
-    html_template = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Заказы</title>
-    </head>
-    <body>
-        <h1>Заказы</h1>
-        <pre>{{ orders_data }}</pre>
-    </body>
-    </html>
-    """
-    return render_template_string(html_template, orders_data=orders_data)
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
