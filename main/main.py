@@ -375,6 +375,9 @@ def process_source_response(message, item_params, item_id):
     elif source == 'Другой вариант':
         msg = bot.send_message(message.chat.id, "Пожалуйста, напишите, откуда вы о нас узнали:")
         bot.register_next_step_handler(msg, process_custom_source, item_params, item_id)
+    else:
+        msg = bot.send_message(message.chat.id, "Не удалось распознать ваш выбор. Пожалуйста, выберите один из предложенных вариантов: 'От селлера' или 'Другой вариант'.")
+        bot.register_next_step_handler(msg, process_source_response, item_params, item_id)
 
 
 # Обрабатывает ввод промокода пользователем
