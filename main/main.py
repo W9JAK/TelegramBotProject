@@ -548,6 +548,10 @@ def handle_view_cart(message):
 @bot.callback_query_handler(func=lambda call: call.data.startswith('pay_'))
 def handle_payment_option(call):
     order_id = call.data.split('_')[1]
+    order = get_order_details(order_id)
+    if not order:
+        bot.answer_callback_query(call.id, "Извините, этот заказ уже не существует.")
+        return
     ask_payment_method(call.message, order_id)
 
 def ask_payment_method(message, order_id):
