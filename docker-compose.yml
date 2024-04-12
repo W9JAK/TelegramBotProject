@@ -18,6 +18,8 @@ services:
           condition: service_healthy
       dbmate:
           condition: service_started
+    labels:
+      - autoheal=true
   db:
     image: postgres
     ports:
@@ -45,3 +47,10 @@ services:
         condition: service_healthy
     environment:
       - DATABASE_URL=postgres://postgres:6535819169DB@db:5432/postgres?sslmode=disable
+  autoheal:
+    image: willfarrell/autoheal
+    restart: always
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
