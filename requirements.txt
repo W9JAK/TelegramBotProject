@@ -14,7 +14,7 @@ MarkupSafe==2.1.5
 netaddr==0.10.1
 packaging==23.2
 psycopg2-binary==2.9.9
-pyTelegramBotAPI==4.15.4
+pyTelegramBotAPI==4.17.0
 python-dotenv==1.0.1
 requests==2.31.0
 telebot==0.0.5
