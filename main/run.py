@@ -1,17 +1,12 @@
 import time
 from threading import Thread
-import main
-from telebot import TeleBot
-
-
-bot = TeleBot(main.my_token)
-
+from main import start_bot
 
 def run_bot():
     while True:
         try:
             print("Запуск бота...")
-            bot.polling(none_stop=True)
+            start_bot()
         except Exception as e:
             print(f"Произошла ошибка: {e}")
             time.sleep(10)
