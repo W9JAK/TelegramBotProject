@@ -1,0 +1,322 @@
+2024-04-12 15:51:42,742:INFO:Serving on http://0.0.0.0:8080
+2024-04-12 15:52:08,598:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4101-000f-5000-a000-11509fb3e1ca', 'status': 'succeeded', 'amount': {'value': '1484.38', 'currency': 'RUB'}, 'income_amount': {'value': '1432.43', 'currency': 'RUB'}, 'description': 'Уникальная практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4101-000f-5000-a000-11509fb3e1ca', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T12:47:03.429Z', 'created_at': '2024-04-12T12:46:57.171Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '197'}}}
+2024-04-12 15:52:41,872:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4251-000f-5000-8000-1aa5ea1ecaa0', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4251-000f-5000-8000-1aa5ea1ecaa0', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T12:52:41.347Z', 'created_at': '2024-04-12T12:52:33.296Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '198'}}}
+2024-04-12 15:52:51,805:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4251-000f-5000-8000-1aa5ea1ecaa0', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4251-000f-5000-8000-1aa5ea1ecaa0', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T12:52:41.347Z', 'created_at': '2024-04-12T12:52:33.296Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '198'}}}
+2024-04-12 15:53:33,995:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4251-000f-5000-8000-1aa5ea1ecaa0', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4251-000f-5000-8000-1aa5ea1ecaa0', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T12:52:41.347Z', 'created_at': '2024-04-12T12:52:33.296Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '198'}}}
+2024-04-12 15:54:58,090:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4251-000f-5000-8000-1aa5ea1ecaa0', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4251-000f-5000-8000-1aa5ea1ecaa0', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T12:52:41.347Z', 'created_at': '2024-04-12T12:52:33.296Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '198'}}}
+2024-04-12 15:57:46,412:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4251-000f-5000-8000-1aa5ea1ecaa0', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4251-000f-5000-8000-1aa5ea1ecaa0', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T12:52:41.347Z', 'created_at': '2024-04-12T12:52:33.296Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '198'}}}
+2024-04-12 16:01:13,330:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4081-000f-5000-a000-1582ab38159f', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4081-000f-5000-a000-1582ab38159f', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T12:44:56.339Z', 'created_at': '2024-04-12T12:44:49.969Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '196'}}}
+2024-04-12 16:06:52,843:INFO:Serving on http://0.0.0.0:8080
+2024-04-12 16:08:26,833:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab45dd-000f-5000-a000-17a7b99e2a0e', 'status': 'succeeded', 'amount': {'value': '2968.75', 'currency': 'RUB'}, 'income_amount': {'value': '2864.84', 'currency': 'RUB'}, 'description': 'Уникальная практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab45dd-000f-5000-a000-17a7b99e2a0e', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:08:26.314Z', 'created_at': '2024-04-12T13:07:41.463Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '199'}}}
+2024-04-12 16:08:26,912:ERROR:Детали оплаченного заказа с ID 199 не найдены.
+2024-04-12 16:08:36,771:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab45dd-000f-5000-a000-17a7b99e2a0e', 'status': 'succeeded', 'amount': {'value': '2968.75', 'currency': 'RUB'}, 'income_amount': {'value': '2864.84', 'currency': 'RUB'}, 'description': 'Уникальная практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab45dd-000f-5000-a000-17a7b99e2a0e', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:08:26.314Z', 'created_at': '2024-04-12T13:07:41.463Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '199'}}}
+2024-04-12 16:08:36,858:ERROR:Детали оплаченного заказа с ID 199 не найдены.
+2024-04-12 16:08:58,430:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4251-000f-5000-8000-1aa5ea1ecaa0', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4251-000f-5000-8000-1aa5ea1ecaa0', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T12:52:41.347Z', 'created_at': '2024-04-12T12:52:33.296Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '198'}}}
+2024-04-12 16:08:58,493:ERROR:Детали оплаченного заказа с ID 198 не найдены.
+2024-04-12 16:09:18,943:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab45dd-000f-5000-a000-17a7b99e2a0e', 'status': 'succeeded', 'amount': {'value': '2968.75', 'currency': 'RUB'}, 'income_amount': {'value': '2864.84', 'currency': 'RUB'}, 'description': 'Уникальная практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab45dd-000f-5000-a000-17a7b99e2a0e', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:08:26.314Z', 'created_at': '2024-04-12T13:07:41.463Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '199'}}}
+2024-04-12 16:09:19,009:ERROR:Детали оплаченного заказа с ID 199 не найдены.
+2024-04-12 16:10:43,047:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab45dd-000f-5000-a000-17a7b99e2a0e', 'status': 'succeeded', 'amount': {'value': '2968.75', 'currency': 'RUB'}, 'income_amount': {'value': '2864.84', 'currency': 'RUB'}, 'description': 'Уникальная практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab45dd-000f-5000-a000-17a7b99e2a0e', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:08:26.314Z', 'created_at': '2024-04-12T13:07:41.463Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '199'}}}
+2024-04-12 16:10:43,225:ERROR:Детали оплаченного заказа с ID 199 не найдены.
+2024-04-12 16:13:31,162:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab45dd-000f-5000-a000-17a7b99e2a0e', 'status': 'succeeded', 'amount': {'value': '2968.75', 'currency': 'RUB'}, 'income_amount': {'value': '2864.84', 'currency': 'RUB'}, 'description': 'Уникальная практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab45dd-000f-5000-a000-17a7b99e2a0e', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:08:26.314Z', 'created_at': '2024-04-12T13:07:41.463Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '199'}}}
+2024-04-12 16:13:31,227:ERROR:Детали оплаченного заказа с ID 199 не найдены.
+2024-04-12 16:19:22,925:INFO:Serving on http://0.0.0.0:8080
+2024-04-12 16:19:53,378:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab48b2-000f-5000-9000-1af649ac6362', 'status': 'succeeded', 'amount': {'value': '10925.00', 'currency': 'RUB'}, 'income_amount': {'value': '10542.62', 'currency': 'RUB'}, 'description': 'Курсовая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab48b2-000f-5000-9000-1af649ac6362', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:19:52.398Z', 'created_at': '2024-04-12T13:19:46.899Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '200'}}}
+2024-04-12 16:19:53,380:INFO:Starting to process payment for order_id: 200 with payment_date: 2024-04-12 16:19:52.398000+03:00
+2024-04-12 16:19:53,412:INFO:Fetching order details for order_id: 200
+2024-04-12 16:19:53,414:INFO:Fetching username for user_id: 1037460957
+2024-04-12 16:19:53,414:INFO:Inserting paid order details into paid_orders for order_id: 200
+2024-04-12 16:19:53,416:ERROR:Error while processing payment for order_id: 200: ОШИБКА:  неверный синтаксис для типа integer: "Курсовая работа"
+LINE 8:                 VALUES (1037460957, 'Курсовая работа', 10925...
+                                            ^
+
+2024-04-12 16:19:53,451:ERROR:Детали оплаченного заказа с ID 200 не найдены.
+2024-04-12 16:20:03,093:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab48b2-000f-5000-9000-1af649ac6362', 'status': 'succeeded', 'amount': {'value': '10925.00', 'currency': 'RUB'}, 'income_amount': {'value': '10542.62', 'currency': 'RUB'}, 'description': 'Курсовая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab48b2-000f-5000-9000-1af649ac6362', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:19:52.398Z', 'created_at': '2024-04-12T13:19:46.899Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '200'}}}
+2024-04-12 16:20:03,093:INFO:Starting to process payment for order_id: 200 with payment_date: 2024-04-12 16:19:52.398000+03:00
+2024-04-12 16:20:03,125:INFO:Fetching order details for order_id: 200
+2024-04-12 16:20:03,126:INFO:Fetching username for user_id: 1037460957
+2024-04-12 16:20:03,127:INFO:Inserting paid order details into paid_orders for order_id: 200
+2024-04-12 16:20:03,129:ERROR:Error while processing payment for order_id: 200: ОШИБКА:  неверный синтаксис для типа integer: "Курсовая работа"
+LINE 8:                 VALUES (1037460957, 'Курсовая работа', 10925...
+                                            ^
+
+2024-04-12 16:20:03,160:ERROR:Детали оплаченного заказа с ID 200 не найдены.
+2024-04-12 16:20:45,188:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab48b2-000f-5000-9000-1af649ac6362', 'status': 'succeeded', 'amount': {'value': '10925.00', 'currency': 'RUB'}, 'income_amount': {'value': '10542.62', 'currency': 'RUB'}, 'description': 'Курсовая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab48b2-000f-5000-9000-1af649ac6362', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:19:52.398Z', 'created_at': '2024-04-12T13:19:46.899Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '200'}}}
+2024-04-12 16:20:45,188:INFO:Starting to process payment for order_id: 200 with payment_date: 2024-04-12 16:19:52.398000+03:00
+2024-04-12 16:20:45,221:INFO:Fetching order details for order_id: 200
+2024-04-12 16:20:45,222:INFO:Fetching username for user_id: 1037460957
+2024-04-12 16:20:45,223:INFO:Inserting paid order details into paid_orders for order_id: 200
+2024-04-12 16:20:45,224:ERROR:Error while processing payment for order_id: 200: ОШИБКА:  неверный синтаксис для типа integer: "Курсовая работа"
+LINE 8:                 VALUES (1037460957, 'Курсовая работа', 10925...
+                                            ^
+
+2024-04-12 16:20:45,371:ERROR:Детали оплаченного заказа с ID 200 не найдены.
+2024-04-12 16:22:09,263:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab48b2-000f-5000-9000-1af649ac6362', 'status': 'succeeded', 'amount': {'value': '10925.00', 'currency': 'RUB'}, 'income_amount': {'value': '10542.62', 'currency': 'RUB'}, 'description': 'Курсовая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab48b2-000f-5000-9000-1af649ac6362', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:19:52.398Z', 'created_at': '2024-04-12T13:19:46.899Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '200'}}}
+2024-04-12 16:22:09,263:INFO:Starting to process payment for order_id: 200 with payment_date: 2024-04-12 16:19:52.398000+03:00
+2024-04-12 16:22:09,293:INFO:Fetching order details for order_id: 200
+2024-04-12 16:22:09,294:INFO:Fetching username for user_id: 1037460957
+2024-04-12 16:22:09,295:INFO:Inserting paid order details into paid_orders for order_id: 200
+2024-04-12 16:22:09,296:ERROR:Error while processing payment for order_id: 200: ОШИБКА:  неверный синтаксис для типа integer: "Курсовая работа"
+LINE 8:                 VALUES (1037460957, 'Курсовая работа', 10925...
+                                            ^
+
+2024-04-12 16:22:09,327:ERROR:Детали оплаченного заказа с ID 200 не найдены.
+2024-04-12 16:26:22,966:INFO:Serving on http://0.0.0.0:8080
+2024-04-12 16:26:55,808:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4a59-000f-5000-a000-1ced04181f59', 'status': 'succeeded', 'amount': {'value': '2968.75', 'currency': 'RUB'}, 'income_amount': {'value': '2864.84', 'currency': 'RUB'}, 'description': 'Уникальная практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4a59-000f-5000-a000-1ced04181f59', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:26:55.296Z', 'created_at': '2024-04-12T13:26:49.437Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '201'}}}
+2024-04-12 16:26:55,814:INFO:Starting to process payment for order_id: 201 with payment_date: 2024-04-12 16:26:55.296000+03:00
+2024-04-12 16:26:55,850:INFO:Fetching order details for order_id: 201
+2024-04-12 16:26:55,853:INFO:Fetching username for user_id: 1037460957
+2024-04-12 16:26:55,854:INFO:Inserting paid order details into paid_orders for order_id: 201
+2024-04-12 16:26:55,856:INFO:Deleting original order from orders for order_id: 201
+2024-04-12 16:26:55,859:INFO:Successfully processed payment and updated databases for order_id: 201
+2024-04-12 16:26:55,898:ERROR:Детали оплаченного заказа с ID 201 не найдены.
+2024-04-12 16:27:05,856:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4a59-000f-5000-a000-1ced04181f59', 'status': 'succeeded', 'amount': {'value': '2968.75', 'currency': 'RUB'}, 'income_amount': {'value': '2864.84', 'currency': 'RUB'}, 'description': 'Уникальная практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4a59-000f-5000-a000-1ced04181f59', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:26:55.296Z', 'created_at': '2024-04-12T13:26:49.437Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '201'}}}
+2024-04-12 16:27:05,856:INFO:Starting to process payment for order_id: 201 with payment_date: 2024-04-12 16:26:55.296000+03:00
+2024-04-12 16:27:05,890:INFO:Fetching order details for order_id: 201
+2024-04-12 16:27:05,892:ERROR:No order details found for order_id: 201
+2024-04-12 16:27:05,926:ERROR:Детали оплаченного заказа с ID 201 не найдены.
+2024-04-12 16:27:47,964:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4a59-000f-5000-a000-1ced04181f59', 'status': 'succeeded', 'amount': {'value': '2968.75', 'currency': 'RUB'}, 'income_amount': {'value': '2864.84', 'currency': 'RUB'}, 'description': 'Уникальная практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4a59-000f-5000-a000-1ced04181f59', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:26:55.296Z', 'created_at': '2024-04-12T13:26:49.437Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '201'}}}
+2024-04-12 16:27:47,964:INFO:Starting to process payment for order_id: 201 with payment_date: 2024-04-12 16:26:55.296000+03:00
+2024-04-12 16:27:47,995:INFO:Fetching order details for order_id: 201
+2024-04-12 16:27:47,996:ERROR:No order details found for order_id: 201
+2024-04-12 16:27:48,028:ERROR:Детали оплаченного заказа с ID 201 не найдены.
+2024-04-12 16:30:19,242:INFO:Serving on http://0.0.0.0:8080
+2024-04-12 16:30:52,017:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4b45-000f-5000-8000-11bf14b28604', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4b45-000f-5000-8000-11bf14b28604', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:30:51.521Z', 'created_at': '2024-04-12T13:30:45.508Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '202'}}}
+2024-04-12 16:30:52,021:ERROR:Exception on /webhook/yookassa [POST]
+Traceback (most recent call last):
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 1463, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 872, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 870, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 855, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\main\webhook_server.py", line 29, in yookassa_webhook
+    captured_at = datetime.strptime(data['object']['captured_at'], '%Y-%m-%dT%H:%M')
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\AppData\Local\Programs\Python\Python312\Lib\_strptime.py", line 554, in _strptime_datetime
+    tt, fraction, gmtoff_fraction = _strptime(data_string, format)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\AppData\Local\Programs\Python\Python312\Lib\_strptime.py", line 336, in _strptime
+    raise ValueError("unconverted data remains: %s" %
+ValueError: unconverted data remains: :51.521Z
+2024-04-12 16:31:02,134:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4b45-000f-5000-8000-11bf14b28604', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4b45-000f-5000-8000-11bf14b28604', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:30:51.521Z', 'created_at': '2024-04-12T13:30:45.508Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '202'}}}
+2024-04-12 16:31:02,134:ERROR:Exception on /webhook/yookassa [POST]
+Traceback (most recent call last):
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 1463, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 872, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 870, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 855, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\main\webhook_server.py", line 29, in yookassa_webhook
+    captured_at = datetime.strptime(data['object']['captured_at'], '%Y-%m-%dT%H:%M')
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\AppData\Local\Programs\Python\Python312\Lib\_strptime.py", line 554, in _strptime_datetime
+    tt, fraction, gmtoff_fraction = _strptime(data_string, format)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\AppData\Local\Programs\Python\Python312\Lib\_strptime.py", line 336, in _strptime
+    raise ValueError("unconverted data remains: %s" %
+ValueError: unconverted data remains: :51.521Z
+2024-04-12 16:31:44,225:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4b45-000f-5000-8000-11bf14b28604', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4b45-000f-5000-8000-11bf14b28604', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:30:51.521Z', 'created_at': '2024-04-12T13:30:45.508Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '202'}}}
+2024-04-12 16:31:44,225:ERROR:Exception on /webhook/yookassa [POST]
+Traceback (most recent call last):
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 1463, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 872, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 870, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 855, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\main\webhook_server.py", line 29, in yookassa_webhook
+    captured_at = datetime.strptime(data['object']['captured_at'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\AppData\Local\Programs\Python\Python312\Lib\_strptime.py", line 554, in _strptime_datetime
+    tt, fraction, gmtoff_fraction = _strptime(data_string, format)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\AppData\Local\Programs\Python\Python312\Lib\_strptime.py", line 336, in _strptime
+    raise ValueError("unconverted data remains: %s" %
+ValueError: unconverted data remains: :51.521Z
+2024-04-12 16:32:00,152:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4a59-000f-5000-a000-1ced04181f59', 'status': 'succeeded', 'amount': {'value': '2968.75', 'currency': 'RUB'}, 'income_amount': {'value': '2864.84', 'currency': 'RUB'}, 'description': 'Уникальная практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4a59-000f-5000-a000-1ced04181f59', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:26:55.296Z', 'created_at': '2024-04-12T13:26:49.437Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '201'}}}
+2024-04-12 16:32:00,152:ERROR:Exception on /webhook/yookassa [POST]
+Traceback (most recent call last):
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 1463, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 872, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 870, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\venv\Lib\site-packages\flask\app.py", line 855, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\OneDrive\Documents\GitHub\TelegramBotProject\main\webhook_server.py", line 29, in yookassa_webhook
+    captured_at = datetime.strptime(data['object']['captured_at'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\AppData\Local\Programs\Python\Python312\Lib\_strptime.py", line 554, in _strptime_datetime
+    tt, fraction, gmtoff_fraction = _strptime(data_string, format)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aagri\AppData\Local\Programs\Python\Python312\Lib\_strptime.py", line 336, in _strptime
+    raise ValueError("unconverted data remains: %s" %
+ValueError: unconverted data remains: :55.296Z
+2024-04-12 16:32:12,361:INFO:Serving on http://0.0.0.0:8080
+2024-04-12 16:32:38,762:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4bb0-000f-5000-9000-124be2915441', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4bb0-000f-5000-9000-124be2915441', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:32:38.264Z', 'created_at': '2024-04-12T13:32:32.439Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '203'}}}
+2024-04-12 16:32:38,764:INFO:Starting to process payment for order_id: 203 with payment_date: 2024-04-12 16:32:38.264000+03:00
+2024-04-12 16:32:38,801:INFO:Fetching order details for order_id: 203
+2024-04-12 16:32:38,803:INFO:Fetching username for user_id: 1037460957
+2024-04-12 16:32:38,804:INFO:Inserting paid order details into paid_orders for order_id: 203
+2024-04-12 16:32:38,805:INFO:Deleting original order from orders for order_id: 203
+2024-04-12 16:32:38,806:INFO:Successfully processed payment and updated databases for order_id: 203
+2024-04-12 16:32:38,950:ERROR:Детали оплаченного заказа с ID 203 не найдены.
+2024-04-12 16:32:48,782:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4bb0-000f-5000-9000-124be2915441', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4bb0-000f-5000-9000-124be2915441', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:32:38.264Z', 'created_at': '2024-04-12T13:32:32.439Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '203'}}}
+2024-04-12 16:32:48,782:INFO:Starting to process payment for order_id: 203 with payment_date: 2024-04-12 16:32:38.264000+03:00
+2024-04-12 16:32:48,813:INFO:Fetching order details for order_id: 203
+2024-04-12 16:32:48,814:ERROR:No order details found for order_id: 203
+2024-04-12 16:32:48,960:ERROR:Детали оплаченного заказа с ID 203 не найдены.
+2024-04-12 16:33:08,256:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4b45-000f-5000-8000-11bf14b28604', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4b45-000f-5000-8000-11bf14b28604', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:30:51.521Z', 'created_at': '2024-04-12T13:30:45.508Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '202'}}}
+2024-04-12 16:33:08,256:INFO:Starting to process payment for order_id: 202 with payment_date: 2024-04-12 16:30:51.521000+03:00
+2024-04-12 16:33:08,289:INFO:Fetching order details for order_id: 202
+2024-04-12 16:33:08,290:ERROR:No order details found for order_id: 202
+2024-04-12 16:33:08,322:ERROR:Детали оплаченного заказа с ID 202 не найдены.
+2024-04-12 16:33:30,923:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4bb0-000f-5000-9000-124be2915441', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4bb0-000f-5000-9000-124be2915441', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:32:38.264Z', 'created_at': '2024-04-12T13:32:32.439Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '203'}}}
+2024-04-12 16:33:30,924:INFO:Starting to process payment for order_id: 203 with payment_date: 2024-04-12 16:32:38.264000+03:00
+2024-04-12 16:33:30,967:INFO:Fetching order details for order_id: 203
+2024-04-12 16:33:30,970:ERROR:No order details found for order_id: 203
+2024-04-12 16:33:31,015:ERROR:Детали оплаченного заказа с ID 203 не найдены.
+2024-04-12 16:50:15,742:INFO:Serving on http://0.0.0.0:8080
+2024-04-12 16:50:47,042:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4fef-000f-5000-8000-1edf58a21696', 'status': 'succeeded', 'amount': {'value': '2968.75', 'currency': 'RUB'}, 'income_amount': {'value': '2864.84', 'currency': 'RUB'}, 'description': 'Уникальная практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4fef-000f-5000-8000-1edf58a21696', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:50:46.571Z', 'created_at': '2024-04-12T13:50:39.221Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '204'}}}
+2024-04-12 16:50:47,046:INFO:Starting to process payment for order_id: 204 with payment_date: 2024-04-12 16:50:46.571000+03:00
+2024-04-12 16:50:47,084:INFO:Fetching order details for order_id: 204
+2024-04-12 16:50:47,085:INFO:Fetching username for user_id: 1037460957
+2024-04-12 16:50:47,086:INFO:Inserting paid order details into paid_orders for order_id: 204
+2024-04-12 16:50:47,087:INFO:Deleting original order from orders for order_id: 204
+2024-04-12 16:50:47,090:INFO:Successfully processed payment and updated databases for order_id: 204
+2024-04-12 16:50:47,090:ERROR:Не удалось добавить оплаченный заказ с исходным ID 204 в таблицу paid_orders.
+2024-04-12 16:50:57,132:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4fef-000f-5000-8000-1edf58a21696', 'status': 'succeeded', 'amount': {'value': '2968.75', 'currency': 'RUB'}, 'income_amount': {'value': '2864.84', 'currency': 'RUB'}, 'description': 'Уникальная практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4fef-000f-5000-8000-1edf58a21696', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:50:46.571Z', 'created_at': '2024-04-12T13:50:39.221Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '204'}}}
+2024-04-12 16:50:57,133:INFO:Starting to process payment for order_id: 204 with payment_date: 2024-04-12 16:50:46.571000+03:00
+2024-04-12 16:50:57,163:INFO:Fetching order details for order_id: 204
+2024-04-12 16:50:57,165:ERROR:No order details found for order_id: 204
+2024-04-12 16:50:57,165:ERROR:Не удалось добавить оплаченный заказ с исходным ID 204 в таблицу paid_orders.
+2024-04-12 17:06:50,644:INFO:Serving on http://0.0.0.0:8080
+2024-04-12 17:07:03,512:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab4fef-000f-5000-8000-1edf58a21696', 'status': 'succeeded', 'amount': {'value': '2968.75', 'currency': 'RUB'}, 'income_amount': {'value': '2864.84', 'currency': 'RUB'}, 'description': 'Уникальная практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab4fef-000f-5000-8000-1edf58a21696', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T13:50:46.571Z', 'created_at': '2024-04-12T13:50:39.221Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '204'}}}
+2024-04-12 17:07:03,513:INFO:Starting to process payment for order_id: 204 with payment_date: 2024-04-12 16:50:46.571000+03:00
+2024-04-12 17:07:03,547:INFO:Fetching order details for order_id: 204
+2024-04-12 17:07:03,549:ERROR:No order details found for order_id: 204
+2024-04-12 17:07:03,549:ERROR:Не удалось добавить оплаченный заказ с исходным ID 204 в таблицу paid_orders.
+2024-04-12 17:07:20,469:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab53d1-000f-5000-8000-1319c3abd869', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab53d1-000f-5000-8000-1319c3abd869', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T14:07:19.976Z', 'created_at': '2024-04-12T14:07:13.741Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '205'}}}
+2024-04-12 17:07:20,469:INFO:Starting to process payment for order_id: 205 with payment_date: 2024-04-12 17:07:19.976000+03:00
+2024-04-12 17:07:20,508:INFO:Fetching order details for order_id: 205
+2024-04-12 17:07:20,509:INFO:Fetching username for user_id: 1037460957
+2024-04-12 17:07:20,511:INFO:Inserting paid order details into paid_orders for order_id: 205
+2024-04-12 17:07:20,512:INFO:Deleting original order from orders for order_id: 205
+2024-04-12 17:07:20,513:INFO:Successfully processed payment and updated databases for order_id: 205. Paid order ID: 4
+2024-04-12 17:07:20,649:ERROR:Ошибка при добавлении оплаченного заказа или извлечении его деталей: ''
+2024-04-12 17:07:30,617:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab53d1-000f-5000-8000-1319c3abd869', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab53d1-000f-5000-8000-1319c3abd869', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T14:07:19.976Z', 'created_at': '2024-04-12T14:07:13.741Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '205'}}}
+2024-04-12 17:07:30,617:INFO:Starting to process payment for order_id: 205 with payment_date: 2024-04-12 17:07:19.976000+03:00
+2024-04-12 17:07:30,648:INFO:Fetching order details for order_id: 205
+2024-04-12 17:07:30,650:ERROR:No order details found for order_id: 205
+2024-04-12 17:07:30,650:ERROR:Не удалось добавить оплаченный заказ с исходным ID 205 в таблицу paid_orders.
+2024-04-12 17:08:12,728:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab53d1-000f-5000-8000-1319c3abd869', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab53d1-000f-5000-8000-1319c3abd869', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T14:07:19.976Z', 'created_at': '2024-04-12T14:07:13.741Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '205'}}}
+2024-04-12 17:08:12,728:INFO:Starting to process payment for order_id: 205 with payment_date: 2024-04-12 17:07:19.976000+03:00
+2024-04-12 17:08:12,758:INFO:Fetching order details for order_id: 205
+2024-04-12 17:08:12,760:ERROR:No order details found for order_id: 205
+2024-04-12 17:08:12,760:ERROR:Не удалось добавить оплаченный заказ с исходным ID 205 в таблицу paid_orders.
+2024-04-12 17:09:20,131:INFO:Serving on http://0.0.0.0:8080
+2024-04-12 17:09:37,021:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab53d1-000f-5000-8000-1319c3abd869', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab53d1-000f-5000-8000-1319c3abd869', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T14:07:19.976Z', 'created_at': '2024-04-12T14:07:13.741Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '205'}}}
+2024-04-12 17:09:37,023:INFO:Starting to process payment for order_id: 205 with payment_date: 2024-04-12 17:07:19.976000+03:00
+2024-04-12 17:09:37,053:INFO:Fetching order details for order_id: 205
+2024-04-12 17:09:37,054:ERROR:No order details found for order_id: 205
+2024-04-12 17:09:37,054:ERROR:Не удалось добавить оплаченный заказ с исходным ID 205 в таблицу paid_orders.
+2024-04-12 17:09:50,431:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab5466-000f-5000-8000-1f5190766e98', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab5466-000f-5000-8000-1f5190766e98', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T14:09:49.948Z', 'created_at': '2024-04-12T14:09:42.930Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '206'}}}
+2024-04-12 17:09:50,431:INFO:Starting to process payment for order_id: 206 with payment_date: 2024-04-12 17:09:49.948000+03:00
+2024-04-12 17:09:50,577:INFO:Fetching order details for order_id: 206
+2024-04-12 17:09:50,578:INFO:Fetching username for user_id: 1037460957
+2024-04-12 17:09:50,579:INFO:Inserting paid order details into paid_orders for order_id: 206
+2024-04-12 17:09:50,580:INFO:Deleting original order from orders for order_id: 206
+2024-04-12 17:09:50,583:INFO:Successfully processed payment and updated databases for order_id: 206. Paid order ID: 5
+2024-04-12 17:12:25,108:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab53d1-000f-5000-8000-1319c3abd869', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab53d1-000f-5000-8000-1319c3abd869', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T14:07:19.976Z', 'created_at': '2024-04-12T14:07:13.741Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '205'}}}
+2024-04-12 17:12:25,108:INFO:Starting to process payment for order_id: 205 with payment_date: 2024-04-12 17:07:19.976000+03:00
+2024-04-12 17:12:25,138:INFO:Fetching order details for order_id: 205
+2024-04-12 17:12:25,139:ERROR:No order details found for order_id: 205
+2024-04-12 17:12:25,139:ERROR:Не удалось добавить оплаченный заказ с исходным ID 205 в таблицу paid_orders.
+2024-04-12 17:13:08,985:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab552d-000f-5000-9000-11dc779d192a', 'status': 'succeeded', 'amount': {'value': '712.50', 'currency': 'RUB'}, 'income_amount': {'value': '687.56', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab552d-000f-5000-9000-11dc779d192a', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T14:13:08.268Z', 'created_at': '2024-04-12T14:13:01.837Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '207'}}}
+2024-04-12 17:13:08,985:INFO:Starting to process payment for order_id: 207 with payment_date: 2024-04-12 17:13:08.268000+03:00
+2024-04-12 17:13:09,024:INFO:Fetching order details for order_id: 207
+2024-04-12 17:13:09,026:INFO:Fetching username for user_id: 1037460957
+2024-04-12 17:13:09,027:INFO:Inserting paid order details into paid_orders for order_id: 207
+2024-04-12 17:13:09,028:INFO:Deleting original order from orders for order_id: 207
+2024-04-12 17:13:09,029:INFO:Successfully processed payment and updated databases for order_id: 207. Paid order ID: 6
+2024-04-12 17:22:35,987:INFO:Serving on http://0.0.0.0:8080
+2024-04-12 17:23:12,507:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab578a-000f-5000-8000-1a879addb531', 'status': 'succeeded', 'amount': {'value': '712.50', 'currency': 'RUB'}, 'income_amount': {'value': '687.56', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab578a-000f-5000-8000-1a879addb531', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T14:23:11.823Z', 'created_at': '2024-04-12T14:23:06.212Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '208'}}}
+2024-04-12 17:23:12,510:INFO:Starting to process payment for order_id: 208 with payment_date: 2024-04-12 17:23:11.823000+03:00
+2024-04-12 17:23:12,646:INFO:Fetching order details for order_id: 208
+2024-04-12 17:23:12,647:INFO:Fetching username for user_id: 1037460957
+2024-04-12 17:23:12,648:INFO:Inserting paid order details into paid_orders for order_id: 208
+2024-04-12 17:23:12,649:INFO:Deleting original order from orders for order_id: 208
+2024-04-12 17:23:12,652:INFO:Successfully processed payment and updated databases for order_id: 208. Paid order ID: 7
+2024-04-12 17:23:37,145:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2dab53d1-000f-5000-8000-1319c3abd869', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2dab53d1-000f-5000-8000-1319c3abd869', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-12T14:07:19.976Z', 'created_at': '2024-04-12T14:07:13.741Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '205'}}}
+2024-04-12 17:23:37,145:INFO:Starting to process payment for order_id: 205 with payment_date: 2024-04-12 17:07:19.976000+03:00
+2024-04-12 17:23:37,174:INFO:Fetching order details for order_id: 205
+2024-04-12 17:23:37,176:ERROR:No order details found for order_id: 205
+2024-04-12 17:23:37,176:ERROR:Не удалось добавить оплаченный заказ с исходным ID 205 в таблицу paid_orders.
+2024-04-17 13:45:33,461:INFO:Serving on http://0.0.0.0:8080
+2024-04-17 13:47:46,535:INFO:Serving on http://0.0.0.0:8080
+2024-04-17 13:48:31,364:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2db1bcb6-000f-5000-8000-1538cf41a760', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2db1bcb6-000f-5000-8000-1538cf41a760', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-17T10:48:30.863Z', 'created_at': '2024-04-17T10:48:22.785Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '209'}}}
+2024-04-17 13:48:31,366:INFO:Starting to process payment for order_id: 209 with payment_date: 2024-04-17 13:48:30.863000+03:00
+2024-04-17 13:48:31,404:INFO:Fetching order details for order_id: 209
+2024-04-17 13:48:31,406:INFO:Fetching username for user_id: 1037460957
+2024-04-17 13:48:31,407:INFO:Inserting paid order details into paid_orders for order_id: 209
+2024-04-17 13:48:31,410:INFO:Deleting original order from orders for order_id: 209
+2024-04-17 13:48:31,412:INFO:Successfully processed payment and updated databases for order_id: 209. Paid order ID: 8
+2024-04-17 13:53:56,886:INFO:Serving on http://0.0.0.0:8080
+2024-04-17 14:06:33,272:INFO:Serving on http://0.0.0.0:8080
+2024-04-17 14:50:49,795:INFO:Serving on http://0.0.0.0:8080
+2024-04-17 14:56:56,152:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2db1ccbf-000f-5000-a000-1dc506e8f91c', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2db1ccbf-000f-5000-a000-1dc506e8f91c', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-17T11:56:55.543Z', 'created_at': '2024-04-17T11:56:47.742Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '211'}}}
+2024-04-17 14:56:56,154:INFO:Starting to process payment for order_id: 211 with payment_date: 2024-04-17 14:56:55.543000+03:00
+2024-04-17 14:56:56,189:INFO:Fetching order details for order_id: 211
+2024-04-17 14:56:56,191:INFO:Fetching username for user_id: 1037460957
+2024-04-17 14:56:56,192:INFO:Inserting paid order details into paid_orders for order_id: 211
+2024-04-17 14:56:56,193:INFO:Deleting original order from orders for order_id: 211
+2024-04-17 14:56:56,194:INFO:Successfully processed payment and updated databases for order_id: 211. Paid order ID: 9
+2024-04-17 15:05:17,557:INFO:Serving on http://0.0.0.0:8080
+2024-04-17 15:05:50,539:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2db1ced8-000f-5000-a000-117fc5c95686', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2db1ced8-000f-5000-a000-117fc5c95686', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-17T12:05:50.397Z', 'created_at': '2024-04-17T12:05:44.467Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '212'}}}
+2024-04-17 15:05:50,542:INFO:Starting to process payment for order_id: 212 with payment_date: 2024-04-17 15:05:50.397000+03:00
+2024-04-17 15:05:50,576:INFO:Fetching order details for order_id: 212
+2024-04-17 15:05:50,579:INFO:Fetching username for user_id: 1037460957
+2024-04-17 15:05:50,580:INFO:Inserting paid order details into paid_orders for order_id: 212
+2024-04-17 15:05:50,581:INFO:Deleting original order from orders for order_id: 212
+2024-04-17 15:05:50,584:INFO:Successfully processed payment and updated databases for order_id: 212. Paid order ID: 10
+2024-04-17 20:37:52,175:INFO:Serving on http://0.0.0.0:8080
+2024-04-17 20:42:35,833:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2db21dc1-000f-5000-a000-181daa8b809e', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2db21dc1-000f-5000-a000-181daa8b809e', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-17T17:42:35.491Z', 'created_at': '2024-04-17T17:42:25.624Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '213'}}}
+2024-04-17 20:42:35,837:INFO:Starting to process payment for order_id: 213 with payment_date: 2024-04-17 20:42:35.491000+03:00
+2024-04-17 20:42:35,873:INFO:Fetching order details for order_id: 213
+2024-04-17 20:42:35,875:INFO:Fetching username for user_id: 1037460957
+2024-04-17 20:42:35,876:INFO:Inserting paid order details into paid_orders for order_id: 213
+2024-04-17 20:42:35,880:INFO:Deleting original order from orders for order_id: 213
+2024-04-17 20:42:35,881:INFO:Successfully processed payment and updated databases for order_id: 213. Paid order ID: 11
+2024-04-18 10:48:25,342:INFO:Serving on http://0.0.0.0:8080
+2024-04-18 14:23:57,310:INFO:Serving on http://0.0.0.0:8080
+2024-04-18 14:25:56,702:INFO:Received webhook data: {'type': 'notification', 'event': 'payment.succeeded', 'object': {'id': '2db316fe-000f-5000-a000-1f822b8b9062', 'status': 'succeeded', 'amount': {'value': '1425.00', 'currency': 'RUB'}, 'income_amount': {'value': '1375.12', 'currency': 'RUB'}, 'description': 'Практическая работа', 'recipient': {'account_id': '300071', 'gateway_id': '2167566'}, 'payment_method': {'type': 'yoo_money', 'id': '2db316fe-000f-5000-a000-1f822b8b9062', 'saved': False, 'title': 'YooMoney wallet 410011758831136', 'account_number': '410011758831136'}, 'captured_at': '2024-04-18T11:25:56.274Z', 'created_at': '2024-04-18T11:25:50.387Z', 'test': True, 'refunded_amount': {'value': '0.00', 'currency': 'RUB'}, 'paid': True, 'refundable': True, 'metadata': {'order_id': '214'}}}
+2024-04-18 14:25:56,703:INFO:Starting to process payment for order_id: 214 with payment_date: 2024-04-18 14:25:56.274000+03:00
+2024-04-18 14:25:56,734:INFO:Fetching order details for order_id: 214
+2024-04-18 14:25:56,736:INFO:Fetching username for user_id: 1037460957
+2024-04-18 14:25:56,737:INFO:Inserting paid order details into paid_orders for order_id: 214
+2024-04-18 14:25:56,740:INFO:Deleting original order from orders for order_id: 214
+2024-04-18 14:25:56,741:INFO:Successfully processed payment and updated databases for order_id: 214. Paid order ID: 12

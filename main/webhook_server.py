@@ -80,5 +80,3 @@ def yookassa_webhook():
 @app.route('/test', methods=['GET'])
 def test_server():
     return jsonify({'status': 'success', 'message': 'Ура, победа'}), 200
-
-
