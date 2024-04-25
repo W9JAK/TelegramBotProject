@@ -1,4 +1,5 @@
 import time
+import traceback
 from threading import Thread
 from main import start_bot
 
@@ -9,7 +10,7 @@ def run_bot():
             print("Запуск бота...")
             start_bot()
         except Exception as e:
-            print(f"Произошла ошибка: {e}")
+            print(f"Произошла ошибка: {e}, {traceback.format_exc()}")
             time.sleep(10)
 
 
