@@ -108,14 +108,14 @@ def get_services_by_institution_type(institution_type):
 
 
 # Добавляет заказ в базу данных со всеми указанными параметрами.
-def add_order(user_id, item_id, amount, description, project_title, project_description, project_requirements, speed_up, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, subscription_discount_applied=False, project_description_file_id=None, file_name=None, file_size=None):
+def add_order(user_id, item_id, amount, description, project_title, project_description, project_requirements, speed_up, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, subscription_discount_applied=False, project_description_file_id=None, file_name=None, file_size=None, payment_status=0, order_status=0):
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                INSERT INTO orders (user_id, item_id, amount, description, project_title, project_description, project_requirements, speed_up, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, subscription_discount_applied, project_description_file_id, file_name, file_size)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (user_id, item_id, amount, description, project_title, project_description, project_requirements, speed_up, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, subscription_discount_applied, project_description_file_id, file_name, file_size))
+                INSERT INTO orders (user_id, item_id, amount, description, project_title, project_description, project_requirements, speed_up, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, subscription_discount_applied, project_description_file_id, file_name, file_size, payment_status, order_status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (user_id, item_id, amount, description, project_title, project_description, project_requirements, speed_up, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, subscription_discount_applied, project_description_file_id, file_name, file_size, payment_status, order_status))
             conn.commit()
     except Exception as e:
         print("Ошибка при добавлении заказа:", e)
@@ -126,10 +126,26 @@ def add_order(user_id, item_id, amount, description, project_title, project_desc
 # Удаляет заказ из базы данных по его идентификатору.
 def delete_order(order_id):
     conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute("DELETE FROM orders WHERE order_id = %s", (order_id,))
-        conn.commit()
-    conn.close()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("DELETE FROM orders WHERE order_id = %s", (order_id,))
+            conn.commit()
+    except Exception as e:
+        print(f"Ошибка при удалении заказа {order_id}: {e}")
+    finally:
+        conn.close()
+
+
+def hide_order(order_id):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("UPDATE orders SET is_visible = false WHERE order_id = %s", (order_id,))
+            conn.commit()
+    except Exception as e:
+        print(f"Ошибка при обновлении видимости заказа {order_id}: {e}")
+    finally:
+        conn.close()
 
 
 # Записывает информацию о виде оплаты
@@ -151,6 +167,25 @@ def update_order_with_partial_payment_info(order_id, is_partial_payment):
         conn.close()
 
 
+def fetch_compilation_time(description, institution_type, speed_up):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT standard_completion_time, speed_up_time
+                FROM items
+                WHERE description = %s AND institution_type = %s
+            """, (description, institution_type))
+            result = cursor.fetchone()
+            if result:
+                return result[1] if speed_up else result[0]
+    except Exception as e:
+        print(f"Ошибка при получении времени на выполнение для {description}: {e}")
+        return "н/д"
+    finally:
+        conn.close()
+
+
 # Возвращает список заказов конкретного пользователя.
 def get_user_orders(user_id):
     conn = get_db_connection()
@@ -158,9 +193,9 @@ def get_user_orders(user_id):
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT order_id, user_id, item_id, amount, description, project_title, project_description, project_requirements, speed_up, education_institution_name, has_contents, contents, source_of_information, promo_code, project_description_file_id, file_name, file_size, subscription_discount_applied, is_partial_payment
+                SELECT order_id, user_id, item_id, amount, description, project_title, project_description, project_requirements, speed_up, education_institution_name, has_contents, contents, source_of_information, promo_code, project_description_file_id, file_name, file_size, subscription_discount_applied, is_partial_payment, order_status
                 FROM orders
-                WHERE user_id = %s
+                WHERE user_id = %s AND is_visible = true
             """, (user_id,))
             orders = [{
                 'order_id': row[0],
@@ -181,7 +216,8 @@ def get_user_orders(user_id):
                 'file_name': row[15],
                 'file_size': row[16],
                 'subscription_discount_applied': row[17],
-                'is_partial_payment': row[18]
+                'is_partial_payment': row[18],
+                'order_status': row[19]
             } for row in cursor.fetchall()]
     except Exception as e:
         print("Ошибка при получении заказов пользователя:", e)
@@ -197,7 +233,7 @@ def get_order_details(order_id):
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT order_id, user_id, item_id, amount, description, project_title, project_description, project_requirements, speed_up, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, project_description_file_id, file_name, file_size, subscription_discount_applied, is_partial_payment
+                SELECT order_id, user_id, item_id, amount, description, project_title, project_description, project_requirements, speed_up, education_institution_name, has_contents, contents, source_of_information, promo_code, contact_method, institution_type, project_description_file_id, file_name, file_size, subscription_discount_applied, is_partial_payment, partial_payment_completed
                 FROM orders
                 WHERE order_id = %s
             """, (order_id,))
@@ -224,10 +260,46 @@ def get_order_details(order_id):
                     'file_name': row[17],
                     'file_size': row[18],
                     'subscription_discount_applied': row[19],
-                    'is_partial_payment': row[20]
+                    'is_partial_payment': row[20],
+                    'partial_payment_completed': row[21]
                 }
     except Exception as e:
         print(f"Ошибка при получении деталей заказа {order_id}:", e)
     finally:
         conn.close()
     return order_details
+
+
+def update_order_status(order_id, payment_status=None, order_status=None, is_partial_payment=None, partial_payment_completed=None):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            if payment_status is not None:
+                cursor.execute("UPDATE orders SET payment_status = %s WHERE order_id = %s", (payment_status, order_id))
+            if order_status is not None:
+                cursor.execute("UPDATE orders SET order_status = %s WHERE order_id = %s", (order_status, order_id))
+            if is_partial_payment is not None:
+                cursor.execute("UPDATE orders SET is_partial_payment = %s WHERE order_id = %s", (is_partial_payment, order_id))
+            if partial_payment_completed is not None:
+                cursor.execute("UPDATE orders SET partial_payment_completed = %s WHERE order_id = %s", (partial_payment_completed, order_id))
+            conn.commit()
+    except Exception as e:
+        print(f"Ошибка при обновлении статуса заказа {order_id}: {e}")
+    finally:
+        conn.close()
+
+
+def get_user_id_by_order_id(order_id):
+    conn = get_db_connection()
+    user_id = None
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT user_id FROM orders WHERE order_id = %s", (order_id,))
+            result = cursor.fetchone()
+            if result:
+                user_id = result[0]
+    except Exception as e:
+        print(f"Ошибка при получении user_id для заказа {order_id}: {e}")
+    finally:
+        conn.close()
+    return user_id

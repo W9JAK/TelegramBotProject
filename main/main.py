@@ -1,7 +1,7 @@
 from telebot import TeleBot, types
-from config import my_token
+from config import my_token, CHANEL_CHAT_ID
 import re
-from db import update_user_info, add_order, delete_order, get_user_orders, get_user_institution_type, get_services_by_institution_type, get_item_params_by_name_and_type, get_order_details, update_order_with_partial_payment_info
+from db import update_user_info, add_order, delete_order, get_user_orders, get_user_institution_type, get_services_by_institution_type, get_item_params_by_name_and_type, get_order_details, get_user_username, hide_order, update_order_status
 from yookassa import Payment
 import uuid
 from decimal import Decimal
@@ -12,6 +12,7 @@ bot = TeleBot(my_token)
 
 
 user_data = {}
+cart_message_ids = {}
 
 
 answers = ['Я не понял, что ты хочешь сказать.', 'Извини, я тебя не понимаю.', 'Я не знаю такой команды.', 'Мой разработчик не говорил, что отвечать в такой ситуации... >_<']
@@ -123,7 +124,7 @@ def handle_contact_button(message):
 # Создает инлайн-клавиатуру с вариантами контактов.
 def create_contact_options_markup():
     markup = types.InlineKeyboardMarkup()
-    responsible_button = types.InlineKeyboardButton("Связаться с ответственным по заказам", url="https://t.me/PaulWilliams29")
+    responsible_button = types.InlineKeyboardButton("Связаться с ответственным по заказам", url="https://t.me/AnotherTime3")
     markup.row(responsible_button)
 
     return markup
@@ -133,7 +134,7 @@ def create_contact_options_markup():
 def bpn(message):
     bot.send_message(message.chat.id, 'Если вы затянули со сроком выполнения работы, то мы сделаем все за вас в крaтчайшие сроки (цена зависит от срока выполнения работы и ее сложности)')
     markup = types.InlineKeyboardMarkup()
-    contact_button = types.InlineKeyboardButton("Связаться с нами", url="https://t.me/gelya052004")
+    contact_button = types.InlineKeyboardButton("Связаться с нами", url="https://t.me/AnotherTime3")
     markup.add(contact_button)
     bot.send_message(message.chat.id, 'Для уточнения деталей работы и обсуждения цен, нажмите кнопку ниже:', reply_markup=markup)
 
@@ -142,7 +143,7 @@ def bpn(message):
 def show_lectures_info(message):
     bot.send_message(message.chat.id, 'Пропустили учебный день? Нужно написать много лекций? Не беда, наша команда профессионалов специализируется на написании лекций. Не теряйте времени и доверьтесь нам. Свяжитесь с нами уже сегодня, чтобы получить свою лекцию завтра')
     markup = types.InlineKeyboardMarkup()
-    contact_button = types.InlineKeyboardButton("Связаться с нами", url="https://t.me/gelya052004")
+    contact_button = types.InlineKeyboardButton("Связаться с нами", url="https://t.me/AnotherTime3")
     markup.add(contact_button)
     bot.send_message(message.chat.id, 'Для уточнения деталей работы и обсуждения цен, нажмите кнопку ниже:', reply_markup=markup)
 
@@ -419,7 +420,7 @@ def ask_for_subscription(message, item_params, item_id):
     skip_button = types.InlineKeyboardButton("Пропустить", callback_data="skip_subscription")
     markup.add(group_button, subscribe_button, skip_button)
 
-    bot.send_message(user_id, "Подпишитесь на наш канал, чтобы быть в курсе последних новостей и акций и получить СКИДКУ на заказ в 5%!", reply_markup=markup)
+    bot.send_message(user_id, "Подпишитесь на наш канал, чтобы быть в курсе последних новостей и акций и получить СКИДКУ на заказ в 3%!", reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: call.data in ["check_subscription", "skip_subscription"])
@@ -444,10 +445,10 @@ def check_user_subscription(call):
                 user_data[user_id]['item_params']['subscription_discount_applied'] = True
 
                 current_amount = user_data[user_id]['item_params']['amount']
-                discounted_amount = current_amount * Decimal('0.95')
+                discounted_amount = current_amount * Decimal('0.97')
                 user_data[user_id]['item_params']['amount'] = discounted_amount
 
-                bot.send_message(call.message.chat.id, "Спасибо за подписку! Вам применена скидка 5%.")
+                bot.send_message(call.message.chat.id, "Спасибо за подписку! Вам применена скидка 3%.")
                 proceed_after_subscription_check(call.message, user_id)
         else:
             bot.send_message(call.message.chat.id, "Кажется, вы еще не подписались. Пожалуйста, подпишитесь на канал.")
@@ -518,53 +519,142 @@ def handle_delete_order(call):
     bot.answer_callback_query(call.id, f"Заказ удален из корзины.")
 
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith('hide_'))
+def handle_hide_order(call):
+    order_id = call.data.split('_')[1]
+    hide_order(order_id)
+    bot.edit_message_text(chat_id=call.message.chat.id,
+                          message_id=call.message.message_id,
+                          text="Заказ скрыт из корзины.")
+    bot.answer_callback_query(call.id, "Заказ скрыт из корзины.")
+
+
 # Отображает пользователю содержимое его корзины
 @bot.message_handler(commands=['cart'])
 def handle_view_cart(message):
     user_id = message.from_user.id
     orders = get_user_orders(user_id)
+
+    if user_id in cart_message_ids:
+        for msg_id in cart_message_ids[user_id]:
+            try:
+                bot.delete_message(chat_id=message.chat.id, message_id=msg_id)
+            except Exception as e:
+                print(f"Не удалось удалить сообщение: {str(e)}")
+        cart_message_ids[user_id] = []
+
     if orders:
+        message_ids = []
         for order in orders:
-            content_line = f'Содержание: {order["contents"]}\n' if order.get("contents") else ""
-
-            order_details = (
-                f'{order["description"]} за {order["amount"]} рублей\n'
-                f'Ускоренное выполнение: {"Да" if order["speed_up"] else "Нет"}\n'
-                f'Название учебного заведения: {order["education_institution_name"]}\n'
-                f'Тема работы: {order["project_title"]}\n'
-                f'{content_line}'
-                f'Пожелания к работе: {order["project_requirements"]}\n'
-                f'Методические указания: {order["project_description"]}\n'
-            )
-
-            markup = types.InlineKeyboardMarkup()
-            pay_button = types.InlineKeyboardButton(text="Оплатить", callback_data=f"pay_{order['order_id']}")
-            delete_button = types.InlineKeyboardButton(text="Удалить", callback_data=f"delete_{order['order_id']}")
-            menu_button = types.InlineKeyboardButton(text="Меню", callback_data="back_to_menu")
-
-            markup.add(pay_button, delete_button, menu_button)
-
-            bot.send_message(message.chat.id, order_details, reply_markup=markup)
+            cart_text = create_cart_text(order)
+            markup = create_individual_markup(order)
+            msg = bot.send_message(message.chat.id, cart_text, reply_markup=markup)
+            message_ids.append(msg.message_id)
+        cart_message_ids[user_id] = message_ids
     else:
-        bot.send_message(message.chat.id, "Ваша корзина пуста.")
+        msg = bot.send_message(message.chat.id, "Ваша корзина пуста.")
+        cart_message_ids[user_id] = [msg.message_id]
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith('pay_'))
-def handle_payment_option(call):
-    order_id = call.data.split('_')[1]
-    order = get_order_details(order_id)
-    if not order:
-        bot.answer_callback_query(call.id, "Извините, этот заказ уже не существует.")
-        return
-    ask_payment_method(call.message, order_id)
 
-def ask_payment_method(message, order_id):
+def create_cart_text(order):
+    content_line = f'Содержание: {order["contents"]}\n' if order.get("contents") else ""
+    status_line = get_order_status_description(order["order_status"])
+    return (
+        f'{order["description"]} за {order["amount"]} руб.\n'
+        f'Ускоренное выполнение: {"Да" if order["speed_up"] else "Нет"}\n'
+        f'Название учебного заведения: {order["education_institution_name"]}\n'
+        f'Тема работы: {order["project_title"]}\n'
+        f'{content_line}'
+        f'Пожелания к работе: {order["project_requirements"]}\n'
+        f'Методические указания: {order["project_description"]}\n'
+        f'Статус заказа: {status_line}\n'
+    )
+
+
+def create_individual_markup(order):
     markup = types.InlineKeyboardMarkup()
-    full_payment_button = types.InlineKeyboardButton('Полностью', callback_data=f'full_{order_id}')
-    partial_payment_button = types.InlineKeyboardButton('Частично', callback_data=f'partial_{order_id}')
+    order_id = order["order_id"]
+    order_status = order["order_status"]
+    is_partial_payment = order.get('is_partial_payment', False)
+    partial_payment_completed = order.get('partial_payment_completed', False)
 
-    markup.add(full_payment_button, partial_payment_button)
+    if order_status == 0:
+        markup.add(types.InlineKeyboardButton(text="Оплатить полностью", callback_data=f'full_{order_id}'))
+        if not is_partial_payment:
+            markup.add(types.InlineKeyboardButton(text="Оплатить частично", callback_data=f'partial_{order_id}'))
+        markup.add(types.InlineKeyboardButton(text="Удалить заказ", callback_data=f"delete_{order_id}"))
 
-    bot.send_message(message.chat.id, "Вы можете оплатить полную стоимость работы, либо первую половину сейчас, а вторую после получение работы!", reply_markup=markup)
+    elif order_status == 1:
+        markup.add(types.InlineKeyboardButton(text="Связаться с менеджером", url="https://t.me/PaulWilliams29"))
+        markup.add(types.InlineKeyboardButton(text="Отменить заказ", callback_data=f"cancel_order_{order_id}"))
+
+    elif order_status == 2 and not partial_payment_completed:
+        markup.add(types.InlineKeyboardButton(text="Оплатить остаток", callback_data=f"pay_remaining_{order_id}"))
+        markup.add(types.InlineKeyboardButton(text="Связаться с менеджером", url="https://t.me/PaulWilliams29"))
+
+    elif order_status == 3:
+        markup.add(types.InlineKeyboardButton(text="Оставить отзыв", url="https://t.me/FreeBiesotz"))
+        markup.add(types.InlineKeyboardButton(text="Отчистить корзину", callback_data=f"hide_{order_id}"))
+
+    markup.add(types.InlineKeyboardButton(text="Меню", callback_data="back_to_menu"))
+
+    return markup
+
+def get_order_status_description(status_code):
+    return {
+        0: "Ожидает оплаты",
+        1: "Оплачен и выполняется",
+        2: "Выполняется и ожидает доплаты",
+        3: "Выполнен"
+    }.get(status_code, "Неизвестный статус")
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('cancel_order_'))
+def cancel_order(call):
+    order_id = call.data.split('_')[2]
+    user_id = call.from_user.id
+    user_username = get_user_username(user_id)
+
+    admin_message = f"Пользователь @{user_username} (ID: {user_id}) запросил отмену заказа {order_id}."
+    markup = types.InlineKeyboardMarkup()
+    confirm_cancellation_button = types.InlineKeyboardButton(
+        text="Подтвердить отмену",
+        callback_data=f"confirm_cancellation_{order_id}_{user_id}"
+    )
+    markup.add(confirm_cancellation_button)
+    bot.send_message(CHANEL_CHAT_ID, admin_message, reply_markup=markup)
+
+    user_message = "Мы получили ваш запрос на отмену заказа. В ближайшее время менеджер свяжется в сами для уточнения деталей."
+    bot.send_message(user_id, user_message)
+    bot.answer_callback_query(call.id)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('confirm_cancellation_'))
+def confirm_cancellation(call):
+    parts = call.data.split('_')
+    if len(parts) < 4:
+        bot.answer_callback_query(call.id, "Некорректные данные для обработки.")
+        return
+
+    command, action, order_id, user_id = parts
+
+    try:
+        order_id = int(order_id)
+    except ValueError:
+        bot.answer_callback_query(call.id, "Некорректный идентификатор заказа.")
+        return
+
+    delete_order(order_id)
+
+    bot.answer_callback_query(call.id, "Отмена заказа подтверждена.")
+    bot.edit_message_text(
+        text=f"Отмена заказа {order_id} подтверждена менеджером.",
+        chat_id=call.message.chat.id,
+        message_id=call.message.message_id
+    )
+
+    user_message = "Отмена вашего заказа подтверждена менеджером, и он удален из корзины."
+    bot.send_message(user_id, user_message)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('full_') or call.data.startswith('partial_'))
@@ -572,18 +662,17 @@ def process_payment_method(call):
     order_id = call.data.split('_')[1]
     order = get_order_details(order_id)
     amount = order['amount']
-
     payment_description = "Оплата заказа"
-    is_partial_payment = False
 
     if call.data.startswith('full_'):
         payment_description = "Полная оплата заказа"
+        new_order_status = 1
+        update_order_status(order_id, order_status=new_order_status, is_partial_payment=False, partial_payment_completed=True)
     elif call.data.startswith('partial_'):
         amount /= 2
         payment_description = "Частичная оплата заказа"
-        is_partial_payment = True
-
-    update_order_with_partial_payment_info(order_id, is_partial_payment)
+        new_order_status = 2
+        update_order_status(order_id, order_status=new_order_status, is_partial_payment=True, partial_payment_completed=False)
 
     payment_url = create_payment(amount, order['description'], order_id)
 
@@ -594,6 +683,25 @@ def process_payment_method(call):
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                           text=f"{payment_description}. Нажмите на кнопку для оплаты:",
                           reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('pay_remaining_'))
+def handle_remaining_payment(call):
+    order_id = call.data.split('_')[2]
+    order = get_order_details(order_id)
+    remaining_amount = order['amount'] / 2
+
+    payment_url = create_payment(remaining_amount, "Оплата оставшейся части заказа", order_id)
+
+    markup = types.InlineKeyboardMarkup()
+    pay_button = types.InlineKeyboardButton(text="Перейти к оплате", url=payment_url)
+    markup.add(pay_button)
+
+    bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                          text="Пожалуйста, перейдите по ссылке для оплаты оставшейся части заказа:",
+                          reply_markup=markup)
+
+    update_order_status(order_id, partial_payment_completed=True)
 
 
 # Обрабатывает callback-запрос, связанный с возвращением в главное меню

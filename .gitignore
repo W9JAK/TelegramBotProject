@@ -2,3 +2,4 @@
 postgres-data
 __pycache__
 venv
+main/yookassa_webhook.log

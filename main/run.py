@@ -2,6 +2,7 @@ import time
 from threading import Thread
 from main import start_bot
 
+
 def run_bot():
     while True:
         try:
@@ -10,6 +11,7 @@ def run_bot():
         except Exception as e:
             print(f"Произошла ошибка: {e}")
             time.sleep(10)
+
 
 # Функция для запуска веб-сервера с использованием waitress
 def run_waitress_server():
