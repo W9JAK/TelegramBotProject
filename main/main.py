@@ -585,19 +585,19 @@ def create_individual_markup(order):
         markup.add(types.InlineKeyboardButton(text="Удалить заказ", callback_data=f"delete_{order_id}"))
 
     elif order_status == 1:
-        markup.add(types.InlineKeyboardButton(text="Связаться с менеджером", url="https://t.me/PaulWilliams29"))
+        markup.add(types.InlineKeyboardButton(text="Связаться с менеджером", url="https://t.me/AnotherTime3"))
         markup.add(types.InlineKeyboardButton(text="Отменить заказ", callback_data=f"cancel_order_{order_id}"))
 
     elif order_status == 2 and not partial_payment_completed:
         markup.add(types.InlineKeyboardButton(text="Оплатить остаток", callback_data=f"pay_remaining_{order_id}"))
-        markup.add(types.InlineKeyboardButton(text="Связаться с менеджером", url="https://t.me/PaulWilliams29"))
+        markup.add(types.InlineKeyboardButton(text="Связаться с менеджером", url="https://t.me/AnotherTime3"))
 
     elif order_status == 3:
         markup.add(types.InlineKeyboardButton(text="Оставить отзыв", url="https://t.me/FreeBiesotz"))
         markup.add(types.InlineKeyboardButton(text="Отчистить корзину", callback_data=f"hide_{order_id}"))
 
     elif order_status == 4:
-        markup.add(types.InlineKeyboardButton(text="Связаться с менеджером", url="https://t.me/PaulWilliams29"))
+        markup.add(types.InlineKeyboardButton(text="Связаться с менеджером", url="https://t.me/AnotherTime3"))
 
     markup.add(types.InlineKeyboardButton(text="Меню", callback_data="back_to_menu"))
 
