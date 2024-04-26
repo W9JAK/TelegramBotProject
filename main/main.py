@@ -596,6 +596,9 @@ def create_individual_markup(order):
         markup.add(types.InlineKeyboardButton(text="Оставить отзыв", url="https://t.me/FreeBiesotz"))
         markup.add(types.InlineKeyboardButton(text="Отчистить корзину", callback_data=f"hide_{order_id}"))
 
+    elif order_status == 4:
+        markup.add(types.InlineKeyboardButton(text="Связаться с менеджером", url="https://t.me/PaulWilliams29"))
+
     markup.add(types.InlineKeyboardButton(text="Меню", callback_data="back_to_menu"))
 
     return markup
@@ -605,7 +608,8 @@ def get_order_status_description(status_code):
         0: "Ожидает оплаты",
         1: "Оплачен и выполняется",
         2: "Выполняется и ожидает доплаты",
-        3: "Выполнен"
+        3: "Выполнен",
+        4: "Обрабатывается доплата"
     }.get(status_code, "Неизвестный статус")
 
 
@@ -662,19 +666,15 @@ def process_payment_method(call):
     order_id = call.data.split('_')[1]
     order = get_order_details(order_id)
     amount = order['amount']
-    payment_description = "Оплата заказа"
 
-    if call.data.startswith('full_'):
-        payment_description = "Полная оплата заказа"
-        new_order_status = 1
-        update_order_status(order_id, order_status=new_order_status, is_partial_payment=False, partial_payment_completed=True)
-    elif call.data.startswith('partial_'):
-        amount /= 2
+    is_partial_payment = call.data.startswith('partial_')
+    if is_partial_payment:
+        amount /= 2  # Делим сумму на две части для частичной оплаты
         payment_description = "Частичная оплата заказа"
-        new_order_status = 2
-        update_order_status(order_id, order_status=new_order_status, is_partial_payment=True, partial_payment_completed=False)
+    else:
+        payment_description = "Полная оплата заказа"
 
-    payment_url = create_payment(amount, order['description'], order_id)
+    payment_url = create_payment(amount, order['description'], order_id, is_partial_payment)
 
     markup = types.InlineKeyboardMarkup()
     pay_button = types.InlineKeyboardButton(text="Перейти к оплате", url=payment_url)
@@ -691,7 +691,7 @@ def handle_remaining_payment(call):
     order = get_order_details(order_id)
     remaining_amount = order['amount'] / 2
 
-    payment_url = create_payment(remaining_amount, "Оплата оставшейся части заказа", order_id)
+    payment_url = create_payment(remaining_amount, "Оплата оставшейся части заказа", order_id, is_partial_payment=True)
 
     markup = types.InlineKeyboardMarkup()
     pay_button = types.InlineKeyboardButton(text="Перейти к оплате", url=payment_url)
@@ -711,7 +711,7 @@ def callback_back_to_menu(call):
     main_menu(call.message)
 
 
-def create_payment(amount, description, order_id):
+def create_payment(amount, description, order_id, is_partial_payment=False):
     return_url = 'https://your-website.com/success-page'
     payment = Payment.create({
         "amount": {
@@ -725,7 +725,8 @@ def create_payment(amount, description, order_id):
         "description": description,
         "capture": True,
         "metadata": {
-            "order_id": order_id
+            "order_id": order_id,
+            "is_partial_payment": is_partial_payment  # Добавляем флаг частичной оплаты
         }
     }, uuid.uuid4())
     return payment.confirmation.confirmation_url

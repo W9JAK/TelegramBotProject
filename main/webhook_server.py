@@ -20,6 +20,8 @@ def yookassa_webhook():
             return jsonify({'status': 'error', 'message': 'Отсутствует order_id'}), 400
 
         order = get_order_details(order_id)
+        is_partial_payment = data['object']['metadata'].get('is_partial_payment', False) == 'true'
+
         if not order:
             print(f"Информация о заказе с ID {order_id} не найдена.")
             return jsonify({'status': 'error', 'message': 'Детали заказа не найдены'}), 404
@@ -29,30 +31,28 @@ def yookassa_webhook():
         compilation_time = fetch_compilation_time(order['description'], order['institution_type'], order['speed_up'])
         payment_time = datetime.now().strftime('%H:%M:%S %Y-%m-%d')
         content_line = f'Содержание: {order["contents"]}\n' if order.get("contents") else ""
-        payment_type = "Частичная оплата" if order['is_partial_payment'] else "Полная оплата"
+        payment_type = "Частичная оплата" if is_partial_payment else "Полная оплата"
 
-        if order['is_partial_payment']:
+        if is_partial_payment:
             if not order['partial_payment_completed']:
-                update_order_status(order_id, partial_payment_completed=True, order_status=2)
-                user_message = "Ваш заказ был успешно оплачен и взят в работу, ожидайте пока менеджер пришлет вам работу. Вы можете просматривать статус заказа в корзине. Спасибо за доверие!"
+                update_order_status(order_id, partial_payment_completed=False, order_status=2)
+                user_message = "Первая часть вашего заказа успешно оплачена. Ваш заказ взят в работу. Вы можете просматривать статус заказа в корзине."
                 bot.send_message(CHANEL_CHAT_ID, f"Поступила первая часть оплаты заказа {order_id}.")
+                send_detailed_admin_message(order, user_username, compilation_time, payment_time, content_line, payment_type, order_id)
             else:
-                update_order_status(order_id, partial_payment_completed=True, order_status=3)
-                user_message = "Вторая часть оплаты успешно завершена. Менеджер свяжется с вами в ближайшее время, чтобы отправить демоверсию работы."
+                update_order_status(order_id, partial_payment_completed=True, order_status=4)
+                user_message = "Вторая часть оплаты успешно завершена. Менеджер свяжется с вами в ближайшее время."
                 bot.send_message(CHANEL_CHAT_ID, f"Поступила вторая часть оплаты заказа {order_id}.")
-                bot.send_message(user_id, user_message)
-                return jsonify({'status': 'success'})
         else:
-            update_order_status(order_id, partial_payment_completed=False, order_status=1)
-            user_message = "Ваш заказ был успешно оплачен и взят в работу. Вы можете просматривать статус заказа в корзине. Спасибо за доверие!"
+            update_order_status(order_id, partial_payment_completed=True, order_status=1)
+            user_message = "Ваш заказ был успешно оплачен полностью и взят в работу. Вы можете просматривать статус заказа в корзине."
             bot.send_message(CHANEL_CHAT_ID, f"Поступила полная оплата заказа {order_id}.")
+            send_detailed_admin_message(order, user_username, compilation_time, payment_time, content_line, payment_type, order_id)
 
         try:
             bot.send_message(user_id, user_message)
         except Exception as e:
             print(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
-
-        send_detailed_admin_message(order, user_username, compilation_time, payment_time, content_line, payment_type, order_id)
 
     return jsonify({'status': 'success'})
 
@@ -124,4 +124,4 @@ def complete_order(call):
 
 @app.route('/test', methods=['GET'])
 def test_server():
-    return jsonify({'status': 'success', 'message': 'Ура, победа'}), 200
+    return jsonify({'status': 'success', 'message': 'Ура, победа'}),
