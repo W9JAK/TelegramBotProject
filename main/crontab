@@ -1,0 +1,1 @@
+0 0,12 * * * python3 /code/orders_to_excel.py >> /var/log/cron.log 2>&1

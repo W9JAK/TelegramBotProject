@@ -362,7 +362,9 @@ def process_project_requirements(message, item_params, item_id):
 # Запрашивает у пользователя, откуда он узнал о компании
 def ask_source_of_knowledge(message, item_params, item_id):
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-    markup.add('От селлера', 'Другой вариант')
+    markup.add('От продавца', 'Листовки')
+    markup.add('Блоггер', 'Баннер на машине')
+    markup.add('Другой вариант')
     msg = bot.send_message(message.chat.id, "Откуда вы узнали о существовании нашей компании?", reply_markup=markup)
     bot.register_next_step_handler(msg, process_source_response, item_params, item_id)
 
@@ -370,14 +372,17 @@ def ask_source_of_knowledge(message, item_params, item_id):
 # Обрабатывает ответ пользователя на вопрос об источнике информации
 def process_source_response(message, item_params, item_id):
     source = message.text
-    if source == 'От селлера':
+    if source == 'От продавца':
         msg = bot.send_message(message.chat.id, "Введите промокод:")
         bot.register_next_step_handler(msg, process_promo_code, item_params, item_id)
     elif source == 'Другой вариант':
         msg = bot.send_message(message.chat.id, "Пожалуйста, напишите, откуда вы о нас узнали:")
         bot.register_next_step_handler(msg, process_custom_source, item_params, item_id)
+    elif source in ['Листовки', 'Блоггер', 'Баннер на машине']:
+        item_params['source_of_information'] = source
+        confirm_order_or_proceed(message, item_params, item_id)
     else:
-        msg = bot.send_message(message.chat.id, "Не удалось распознать ваш выбор. Пожалуйста, выберите один из предложенных вариантов: 'От селлера' или 'Другой вариант'.")
+        msg = bot.send_message(message.chat.id, "Не удалось распознать ваш выбор. Пожалуйста, выберите один из предложенных вариантов.")
         bot.register_next_step_handler(msg, process_source_response, item_params, item_id)
 
 
@@ -712,7 +717,7 @@ def callback_back_to_menu(call):
 
 
 def create_payment(amount, description, order_id, is_partial_payment=False):
-    return_url = 'https://your-website.com/success-page'
+    return_url = 'https://t.me/FreeBies_help_bot'
     payment = Payment.create({
         "amount": {
             "value": str(amount),
@@ -726,7 +731,7 @@ def create_payment(amount, description, order_id, is_partial_payment=False):
         "capture": True,
         "metadata": {
             "order_id": order_id,
-            "is_partial_payment": is_partial_payment  # Добавляем флаг частичной оплаты
+            "is_partial_payment": is_partial_payment
         }
     }, uuid.uuid4())
     return payment.confirmation.confirmation_url

@@ -1,7 +1,6 @@
 import psycopg2
 from config import DATABASE_URL
 
-
 # Возвращает соединение с базой данных.
 def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)

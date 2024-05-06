@@ -49,3 +49,7 @@ Werkzeug==3.0.1
 wrapt==1.16.0
 yarl==1.9.4
 yookassa==3.0.1
+psycopg2~=2.9.9
+pandas~=2.2.2
+schedule~=1.2.1
+APScheduler~=3.10.4
