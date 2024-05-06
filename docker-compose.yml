@@ -8,13 +8,16 @@ services:
     restart: always
     volumes:
       - .:/code
+    links:
+      - db
+      - dbmate
     ports:
       - "8080:8080"
     depends_on:
       db:
-        condition: service_healthy
+          condition: service_healthy
       dbmate:
-        condition: service_started
+          condition: service_started
     labels:
       - autoheal=true
 
@@ -39,6 +42,8 @@ services:
     command: -d "/code/migration" up
     volumes:
       - .:/code
+    links:
+      - db
     depends_on:
       db:
         condition: service_healthy
