@@ -8,6 +8,8 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 WORKDIR /code
 
+COPY requirements.txt /code/
+
 RUN apt update && \
     apt install -y --no-install-recommends python3-dev libpq-dev build-essential python3-pip libgeos-dev cron curl && \
     pip3 install -r requirements.txt
@@ -23,5 +25,5 @@ RUN chmod 0644 /etc/cron.d/orders-to-excel-cron \
     && crontab /etc/cron.d/orders-to-excel-cron \
     && touch /var/log/cron.log
 
-# Запуск cron и главного приложения
 CMD cron && python3 main/run.py
+
