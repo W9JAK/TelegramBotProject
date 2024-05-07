@@ -1,5 +1,5 @@
 from telebot import TeleBot, types
-from config import my_token, CHANEL_CHAT_ID
+from config import my_token, CHANEL_CHAT_ID, ADMIN_USERNAME
 import re
 from db import update_user_info, add_order, delete_order, get_user_orders, get_user_institution_type, get_services_by_institution_type, get_item_params_by_name_and_type, get_order_details, get_user_username, hide_order, update_order_status
 from yookassa import Payment
@@ -124,7 +124,7 @@ def handle_contact_button(message):
 # Создает инлайн-клавиатуру с вариантами контактов.
 def create_contact_options_markup():
     markup = types.InlineKeyboardMarkup()
-    responsible_button = types.InlineKeyboardButton("Связаться с ответственным по заказам", url="https://t.me/AnotherTime3")
+    responsible_button = types.InlineKeyboardButton("Связаться с ответственным по заказам", url=f"{ADMIN_USERNAME}")
     markup.row(responsible_button)
 
     return markup
@@ -134,7 +134,7 @@ def create_contact_options_markup():
 def bpn(message):
     bot.send_message(message.chat.id, 'Если вы затянули со сроком выполнения работы, то мы сделаем все за вас в крaтчайшие сроки (цена зависит от срока выполнения работы и ее сложности)')
     markup = types.InlineKeyboardMarkup()
-    contact_button = types.InlineKeyboardButton("Связаться с нами", url="https://t.me/AnotherTime3")
+    contact_button = types.InlineKeyboardButton("Связаться с нами", url=f"{ADMIN_USERNAME}")
     markup.add(contact_button)
     bot.send_message(message.chat.id, 'Для уточнения деталей работы и обсуждения цен, нажмите кнопку ниже:', reply_markup=markup)
 
@@ -143,7 +143,7 @@ def bpn(message):
 def show_lectures_info(message):
     bot.send_message(message.chat.id, 'Пропустили учебный день? Нужно написать много лекций? Не беда, наша команда профессионалов специализируется на написании лекций. Не теряйте времени и доверьтесь нам. Свяжитесь с нами уже сегодня, чтобы получить свою лекцию завтра')
     markup = types.InlineKeyboardMarkup()
-    contact_button = types.InlineKeyboardButton("Связаться с нами", url="https://t.me/AnotherTime3")
+    contact_button = types.InlineKeyboardButton("Связаться с нами", url=f"{ADMIN_USERNAME}")
     markup.add(contact_button)
     bot.send_message(message.chat.id, 'Для уточнения деталей работы и обсуждения цен, нажмите кнопку ниже:', reply_markup=markup)
 
@@ -590,19 +590,19 @@ def create_individual_markup(order):
         markup.add(types.InlineKeyboardButton(text="Удалить заказ", callback_data=f"delete_{order_id}"))
 
     elif order_status == 1:
-        markup.add(types.InlineKeyboardButton(text="Связаться с менеджером", url="https://t.me/AnotherTime3"))
+        markup.add(types.InlineKeyboardButton(text="Связаться с менеджером", url=f"{ADMIN_USERNAME}"))
         markup.add(types.InlineKeyboardButton(text="Отменить заказ", callback_data=f"cancel_order_{order_id}"))
 
     elif order_status == 2 and not partial_payment_completed:
         markup.add(types.InlineKeyboardButton(text="Оплатить остаток", callback_data=f"pay_remaining_{order_id}"))
-        markup.add(types.InlineKeyboardButton(text="Связаться с менеджером", url="https://t.me/AnotherTime3"))
+        markup.add(types.InlineKeyboardButton(text="Связаться с менеджером", url=f"{ADMIN_USERNAME}"))
 
     elif order_status == 3:
         markup.add(types.InlineKeyboardButton(text="Оставить отзыв", url="https://t.me/FreeBiesotz"))
         markup.add(types.InlineKeyboardButton(text="Отчистить корзину", callback_data=f"hide_{order_id}"))
 
     elif order_status == 4:
-        markup.add(types.InlineKeyboardButton(text="Связаться с менеджером", url="https://t.me/AnotherTime3"))
+        markup.add(types.InlineKeyboardButton(text="Связаться с менеджером", url=f"{ADMIN_USERNAME}"))
 
     markup.add(types.InlineKeyboardButton(text="Меню", callback_data="back_to_menu"))
 
