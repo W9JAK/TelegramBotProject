@@ -20,15 +20,16 @@ def fetch_data():
 
 # Функция для сохранения DataFrame в файл Excel
 def save_to_excel(df):
-    with pd.ExcelWriter("orders.xlsx", engine='openpyxl') as writer:
+    file_path = "/code/main/orders.xlsx"
+    with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
         df.to_excel(writer, index=False)
-    with open("orders.xlsx", "rb") as f:
+    with open(file_path, "rb") as f:
         excel_data = f.read()
     return excel_data
 
 
 def sync_to_yandex_disk(file_path, remote_path):
-    command = ["copy", file_path, f"YandexDisk:{remote_path}"]
+    command = ["rclone", "copy", file_path, f"YandexDisk:{remote_path}", "--log-file=/code/main/rclone.log", "--log-level=INFO"]
     subprocess.run(command, check=True)
 
 
