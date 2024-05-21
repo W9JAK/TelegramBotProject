@@ -124,4 +124,4 @@ def complete_order(call):
 
 @app.route('/test', methods=['GET'])
 def test_server():
-    return jsonify({'status': 'success', 'message': 'Ура, победа'}),
+    return jsonify({'status': 'success', 'message': 'Ура, победа'})
