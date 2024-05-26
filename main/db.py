@@ -94,11 +94,12 @@ def get_services_by_institution_type(institution_type):
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT name, amount, description, custom_description
+                SELECT item_id, name, amount, description, custom_description
                 FROM items
                 WHERE institution_type = %s
+                ORDER BY item_id ASC
             """, (institution_type,))
-            services = [{'name': row[0], 'amount': row[1], 'description': row[2], 'custom_description': row[3]} for row in cursor.fetchall()]
+            services = [{'item_id': row[0], 'name': row[1], 'amount': row[2], 'description': row[3], 'custom_description': row[4]} for row in cursor.fetchall()]
     except Exception as e:
         print(f"Ошибка при получении услуг для {institution_type}: {e}")
     finally:
